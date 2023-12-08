@@ -188,8 +188,8 @@ class extract_ROI:
             os.makedirs(images_subfolder, exist_ok=True)
             os.makedirs(masks_subfolder, exist_ok=True)            
             # Save the processed image
-            output_img_path = os.path.join(output_folder, f"processed_{os.path.basename(img_path)}")
-            output_mask_path = os.path.join(output_folder, f"processed_{os.path.basename(mask_path)}")
+            output_img_path = os.path.join(images_subfolder ,f"{os.path.basename(img_path)}")
+            output_mask_path = os.path.join(masks_subfolder ,f"{os.path.basename(mask_path)}")
             #print(output_img_path)
             cv2.imwrite(output_img_path, cropped_img)
             cv2.imwrite(output_mask_path, cropped_mask)
