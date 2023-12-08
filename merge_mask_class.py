@@ -25,13 +25,13 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
 
             # Merge masks based on conditions
             if lesion_type == 'Mass':
-                merged_mask = original_mask * 0.75
+                merged_mask = original_mask * 0.20
             elif lesion_type == 'Architecturaldistorsion':
-                merged_mask = original_mask * 0.25
+                merged_mask = original_mask * 0.40
             elif lesion_type == 'Asymmetry':
-                merged_mask = original_mask * 0.50
+                merged_mask = original_mask * 0.60
             elif lesion_type == 'Microcalcification':
-                merged_mask = original_mask
+                merged_mask = original_mask * 0.80
 
             # Add the merged mask to the dictionary for the corresponding ID
             id_key = mask_id.rsplit('_', 1)[0]
