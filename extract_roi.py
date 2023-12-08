@@ -95,7 +95,7 @@ class extract_ROI:
                 y1 = int(xy[0][1].item())
                 x2 = int(xy[0][2].item())
                 y2 = int(xy[0][3].item())
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
                 mask = mask[y1: y2, x1:x2]
 
                 return mask
