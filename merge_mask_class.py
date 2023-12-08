@@ -7,7 +7,7 @@ from tqdm import tqdm
 def merge_masks_with_conditions(df, input_folder, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    # Dictionary to store masks for each ID
+    # Dictionary to store masks for each ID and lesion type
     id_masks = {}
 
     for index, row in tqdm(df.iterrows(), desc="Processing masks", total=len(df), unit="mask"):
@@ -17,7 +17,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
 
         # Construct the original mask path
         original_mask_path = os.path.join(input_folder, mask_id)
-        print(mask_id.rsplit('_', 1)[0] )
+
         try:
             # Load the original mask
             original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE)  # Intensity values [0, 255]
@@ -35,23 +35,19 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
             elif lesion_type == 'Microcalcification':
                 intensity = 1.0
 
-            # Adjust intensity values based on the existing mask
-            existing_mask = id_masks.get(image_id, None)
+            # Get the existing mask for the same ID and lesion type, or create a new one
+            existing_mask = id_masks.get((image_id, lesion_type), None)
             if existing_mask is not None:
-                # Overlay the masks and replace overlapping area with the mask with smaller area
-                overlay_area = existing_mask * original_mask
-                smaller_mask = existing_mask < original_mask
-                id_masks[image_id] = existing_mask * (1 - overlay_area) + original_mask * intensity * overlay_area
-                id_masks[image_id][smaller_mask] = existing_mask[smaller_mask]
+                id_masks[(image_id, lesion_type)] += original_mask * intensity
             else:
-                id_masks[image_id] = original_mask * intensity
+                id_masks[(image_id, lesion_type)] = original_mask * intensity
 
         except Exception as e:
             print(f"Error processing mask {mask_id}: {str(e)}")
 
-    # Save merged masks for each ID
-    for image_id, merged_mask in id_masks.items():
-        output_path = os.path.join(output_folder, f"{image_id}")
+    # Save merged masks for each ID and lesion type
+    for (image_id, lesion_type), merged_mask in id_masks.items():
+        output_path = os.path.join(output_folder, f"{image_id}_{lesion_type}_merged.png")
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
