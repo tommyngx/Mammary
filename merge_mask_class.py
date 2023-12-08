@@ -21,31 +21,38 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
 
         try:
             # Load the original mask
-            original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE) / 255.0  # Normalize to range [0, 1]
+            original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE)  # Intensity values [0, 255]
+
+            # Normalize intensity values to range [0, 1]
+            original_mask = original_mask / 255.0
 
             # Merge masks based on conditions
             if lesion_type == 'Mass':
-                merged_mask = original_mask * 0.20
+                intensity = 0.75
             elif lesion_type == 'Architecturaldistorsion':
-                merged_mask = original_mask * 0.40
+                intensity = 0.25
             elif lesion_type == 'Asymmetry':
-                merged_mask = original_mask * 0.60
+                intensity = 0.50
             elif lesion_type == 'Microcalcification':
-                merged_mask = original_mask * 0.80
+                intensity = 1.0
 
-            # Add the merged mask to the dictionary for the corresponding ID
-            id_key = mask_id.rsplit('_', 1)[0]
-            if id_key in id_masks:
-                id_masks[id_key] += merged_mask
+            # Adjust intensity values based on the existing mask
+            existing_mask = id_masks.get((image_id, split), None)
+            if existing_mask is not None:
+                # Overlay the masks and replace overlapping area with the mask with smaller area
+                overlay_area = existing_mask * original_mask
+                smaller_mask = existing_mask < original_mask
+                id_masks[(image_id, split)] = existing_mask * (1 - overlay_area) + original_mask * intensity * overlay_area
+                id_masks[(image_id, split)][smaller_mask] = existing_mask[smaller_mask]
             else:
-                id_masks[id_key] = merged_mask
+                id_masks[(image_id, split)] = original_mask * intensity
 
         except Exception as e:
             print(f"Error processing mask {mask_id}: {str(e)}")
 
     # Save merged masks for each ID
-    for id_key, merged_mask in id_masks.items():
-        output_path = os.path.join(output_folder, f"{id_key}.png")
+    for (image_id, split), merged_mask in id_masks.items():
+        output_path = os.path.join(output_folder, f"{image_id}_{split}_merged.png")
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
