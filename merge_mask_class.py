@@ -19,30 +19,29 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
         # Construct the original mask path
         original_mask_path = os.path.join(input_folder, mask_id)
 
-        # Check if the file exists
-        if not os.path.exists(original_mask_path):
-            print(f"File not found: {original_mask_path}")
-            continue
+        try:
+            # Load the original mask
+            original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE) / 255.0  # Normalize to range [0, 1]
 
-        # Load the original mask
-        original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE) / 255.0  # Normalize to range [0, 1]
+            # Merge masks based on conditions
+            if lesion_type == 'Mass':
+                merged_mask = original_mask * 0.75
+            elif lesion_type == 'Architecturaldistorsion':
+                merged_mask = original_mask * 0.25
+            elif lesion_type == 'Asymmetry':
+                merged_mask = original_mask * 0.50
+            elif lesion_type == 'Microcalcification':
+                merged_mask = original_mask
 
-        # Merge masks based on conditions
-        if lesion_type == 'Mass':
-            merged_mask = original_mask * 0.75
-        elif lesion_type == 'Architecturaldistorsion':
-            merged_mask = original_mask * 0.25
-        elif lesion_type == 'Asymmetry':
-            merged_mask = original_mask * 0.50
-        elif lesion_type == 'Microcalcification':
-            merged_mask = original_mask
+            # Add the merged mask to the dictionary for the corresponding ID
+            id_key = mask_id.rsplit('_', 1)[0]
+            if id_key in id_masks:
+                id_masks[id_key] += merged_mask
+            else:
+                id_masks[id_key] = merged_mask
 
-        # Add the merged mask to the dictionary for the corresponding ID
-        id_key = mask_id.rsplit('_', 1)[0]
-        if id_key in id_masks:
-            id_masks[id_key] += merged_mask
-        else:
-            id_masks[id_key] = merged_mask
+        except Exception as e:
+            print(f"Error processing mask {mask_id}: {str(e)}")
 
     # Save merged masks for each ID
     for id_key, merged_mask in id_masks.items():
