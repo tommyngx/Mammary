@@ -98,7 +98,7 @@ class extract_ROI:
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                 mask = mask[y1: y2, x1:x2]
 
-            return mask
+                return mask
 
     def extract_roi_otsu(self, img, gkernel=(5, 5)):
         """
