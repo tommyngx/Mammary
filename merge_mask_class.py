@@ -16,8 +16,15 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
         lesion_type = row['lesion_types']
         split = row['split']
 
-        # Load the original mask
+        # Construct the original mask path
         original_mask_path = os.path.join(input_folder, mask_id)
+
+        # Check if the file exists
+        if not os.path.exists(original_mask_path):
+            print(f"File not found: {original_mask_path}")
+            continue
+
+        # Load the original mask
         original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE) / 255.0  # Normalize to range [0, 1]
 
         # Merge masks based on conditions
