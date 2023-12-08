@@ -181,7 +181,7 @@ class extract_ROI:
             # Add your logic to process results and masks here
             # Example: cropped_img = self.crop(img)
             cropped_img = self.crop(img)
-            cropped_mask = self.crop(img, mask)
+            cropped_mask = self.crop_mask(img, mask)
 
             images_subfolder = os.path.join(output_folder, "images")
             masks_subfolder = os.path.join(output_folder, "masks")

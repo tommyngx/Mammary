@@ -34,7 +34,7 @@ def create_dataframe(images_folder, masks_folder):
     image_files = [f for f in os.listdir(images_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.dcm'))]
     df = pd.DataFrame({"Path": [os.path.join(images_folder, img) for img in image_files]})
     df['ID'] = df['Path'].apply(lambda x: os.path.splitext(os.path.basename(x))[0])
-    df['Path_mask'] = df['ID'].apply(lambda x: os.path.join(masks_folder, f"{x}_mask.png"))  # Adjust the mask file extension if needed
+    df['Path_mask'] = df['ID'].apply(lambda x: os.path.join(masks_folder, f"{x}.png"))  # Adjust the mask file extension if needed
     return df
 
 if __name__ == "__main__":
