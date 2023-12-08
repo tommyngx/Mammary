@@ -7,8 +7,8 @@ from tqdm import tqdm
 def merge_masks_with_conditions(df, input_folder, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    # Dictionary to store masks for each ID and lesion type
-    id_masks = {}
+    # Dictionary to store the first mask for each ID
+    id_first_masks = {}
 
     for index, row in tqdm(df.iterrows(), desc="Processing masks", total=len(df), unit="mask"):
         image_id = row['image_id']
@@ -35,19 +35,19 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
             elif lesion_type == 'Microcalcification':
                 intensity = 1.0
 
-            # Get the existing mask for the same ID and lesion type, or create a new one
-            existing_mask = id_masks.get((image_id, lesion_type), None)
-            if existing_mask is not None:
-                id_masks[(image_id, lesion_type)] += original_mask * intensity
+            # Add the first mask for each ID to the dictionary
+            if image_id not in id_first_masks:
+                id_first_masks[image_id] = original_mask * intensity
             else:
-                id_masks[(image_id, lesion_type)] = original_mask * intensity
+                # Merge subsequent masks with the first mask
+                id_first_masks[image_id] = id_first_masks[image_id] + original_mask * intensity
 
         except Exception as e:
             print(f"Error processing mask {mask_id}: {str(e)}")
 
-    # Save merged masks for each ID and lesion type
-    for (image_id, lesion_type), merged_mask in id_masks.items():
-        output_path = os.path.join(output_folder, f"{image_id}_{lesion_type}_merged.png")
+    # Save merged masks for each ID
+    for image_id, merged_mask in id_first_masks.items():
+        output_path = os.path.join(output_folder, f"{image_id}")
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
