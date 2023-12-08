@@ -14,9 +14,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
         image_id = row['image_id']
         mask_id = row['mask_id']
         lesion_type = row['lesion_types']
-        split = row['split']
 
-        print(image_id, mask_id, lesion_type)
         # Construct the original mask path
         original_mask_path = os.path.join(input_folder, mask_id)
 
@@ -38,22 +36,22 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
                 intensity = 1.0
 
             # Adjust intensity values based on the existing mask
-            existing_mask = id_masks.get((image_id, split), None)
+            existing_mask = id_masks.get(image_id, None)
             if existing_mask is not None:
                 # Overlay the masks and replace overlapping area with the mask with smaller area
                 overlay_area = existing_mask * original_mask
                 smaller_mask = existing_mask < original_mask
-                id_masks[(image_id, split)] = existing_mask * (1 - overlay_area) + original_mask * intensity * overlay_area
-                id_masks[(image_id, split)][smaller_mask] = existing_mask[smaller_mask]
+                id_masks[image_id] = existing_mask * (1 - overlay_area) + original_mask * intensity * overlay_area
+                id_masks[image_id][smaller_mask] = existing_mask[smaller_mask]
             else:
-                id_masks[(image_id, split)] = original_mask * intensity
+                id_masks[image_id] = original_mask * intensity
 
         except Exception as e:
             print(f"Error processing mask {mask_id}: {str(e)}")
 
     # Save merged masks for each ID
-    for (image_id, split), merged_mask in id_masks.items():
-        output_path = os.path.join(output_folder, f"{image_id}_{split}_merged.png")
+    for image_id, merged_mask in id_masks.items():
+        output_path = os.path.join(output_folder, f"{image_id}_merged.png")
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
