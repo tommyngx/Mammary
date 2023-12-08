@@ -12,7 +12,7 @@ def main(args):
     yolo_model = YOLO(args.yolo_model_path)
 
     # Automatically create a DataFrame from the images folder
-    df = create_dataframe(args.images_folder)
+    df = create_dataframe(args.images_folder,args.masks_folder )
 
     # Initialize extract_ROI object
     extractor = extract_ROI(df, yolo_model)
@@ -24,15 +24,17 @@ def main(args):
 
     # Process and save images and masks
     extractor.process_and_save_images_with_masks(images_folder, masks_folder, output_folder)
+    #extractor.plot_sample(resize=256)  # Adjust the method based on available functionality
 
 def load_yolo_model(model_path):
-    # Replace this with your YOLO model loading code
-    # Example: yolo_model = your_yolo_loading_function(model_path)
-    return None  # Change this line
+    yolo8 = YOLO(model_path)
+    return yolo8  
 
-def create_dataframe(images_folder):
+def create_dataframe(images_folder, masks_folder):
     image_files = [f for f in os.listdir(images_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.dcm'))]
     df = pd.DataFrame({"Path": [os.path.join(images_folder, img) for img in image_files]})
+    df['ID'] = df['Path'].apply(lambda x: os.path.splitext(os.path.basename(x))[0])
+    df['Path_mask'] = df['ID'].apply(lambda x: os.path.join(masks_folder, f"{x}_mask.png"))  # Adjust the mask file extension if needed
     return df
 
 if __name__ == "__main__":

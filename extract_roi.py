@@ -71,6 +71,35 @@ class extract_ROI:
 
         return img
 
+    def crop_mask(self, img, mask):
+        results = self.detect_model(img)
+        boxes = results[0].boxes
+
+        if len(boxes) == 0:
+            print("YOLO did not detect any boxes. Falling back to crop_threshold with extract_roi_otsu.")            
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            roi_coords, _, _ = self.extract_roi_otsu(img_gray)
+
+            if roi_coords is not None:
+                mask = mask[roi_coords[1]:roi_coords[3], roi_coords[0]:roi_coords[2]]
+            else:
+                print("Extracting ROI with Otsu thresholding and contour detection failed. Returning original image.")
+
+            return mask
+
+        else:
+                # Assuming there's only one box, you might need to modify this if there are multiple boxes
+                box = boxes[0]
+                xy = box.xyxy
+                x1 = int(xy[0][0].item())
+                y1 = int(xy[0][1].item())
+                x2 = int(xy[0][2].item())
+                y2 = int(xy[0][3].item())
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                mask = mask[y1: y2, x1:x2]
+
+            return mask
+
     def extract_roi_otsu(self, img, gkernel=(5, 5)):
         """
         Extracts the Region of Interest (ROI) from an input image using Otsu's thresholding.
@@ -141,8 +170,10 @@ class extract_ROI:
     def process_and_save_images_with_masks(self, images_folder, masks_folder, output_folder):
         os.makedirs(output_folder, exist_ok=True)
         for idx, row in tqdm(self.df.iterrows(), total=len(self.df)):
-            img_path = row['Path']
+            img_path  = row['Path']
+            mask_path = row['Path_mask']
             img = self.load_image(img_path)
+            mask = self.load_image(mask_path)
 
             # Use your YOLO model for object detection (assuming YOLO has a method like detect)
             results = self.detect_model(img)
@@ -150,11 +181,18 @@ class extract_ROI:
             # Add your logic to process results and masks here
             # Example: cropped_img = self.crop(img)
             cropped_img = self.crop(img)
+            cropped_mask = self.crop(img, mask)
 
+            images_subfolder = os.path.join(output_folder, "images")
+            masks_subfolder = os.path.join(output_folder, "masks")
+            os.makedirs(images_subfolder, exist_ok=True)
+            os.makedirs(masks_subfolder, exist_ok=True)            
             # Save the processed image
             output_img_path = os.path.join(output_folder, f"processed_{os.path.basename(img_path)}")
-            print(output_img_path)
+            output_mask_path = os.path.join(output_folder, f"processed_{os.path.basename(mask_path)}")
+            #print(output_img_path)
             cv2.imwrite(output_img_path, cropped_img)
+            cv2.imwrite(output_mask_path, cropped_mask)
 
     def plot_sample(self, resize=256):
         # Add your plot_sample logic here
