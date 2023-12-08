@@ -17,7 +17,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
         split = row['split']
 
         # Load the original mask
-        original_mask_path = os.path.join(input_folder, f"{image_id}_{mask_id}.png")
+        original_mask_path = os.path.join(input_folder, mask_id)
         original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE) / 255.0  # Normalize to range [0, 1]
 
         # Merge masks based on conditions
