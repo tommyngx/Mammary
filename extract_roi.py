@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from IPython import display
 from tqdm import tqdm
 import pydicom
+from ultralytics import YOLO
 
 class extract_ROI():
     def __init__(self, df, yolo_model):
@@ -182,15 +183,5 @@ class extract_ROI():
 
         print(f"Processed image saved to: {output_image_path}")
         print(f"Processed mask saved to: {output_mask_path}")
-
-# Example usage:
-# Initialize extract_ROI object
-extractor = extract_ROI(df, yolo_model)
-# Provide input paths and output folder
-images_folder = "/path/to/images/folder"
-masks_folder = "/path/to/masks/folder"
-output_folder = "/path/to/output/folder"
-# Process and save images and masks
-extractor.process_and_save_images_with_masks(images_folder, masks_folder, output_folder)
 
 
