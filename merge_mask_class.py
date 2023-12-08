@@ -40,7 +40,6 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
     # Save merged masks for each ID
     for id_key, merged_mask in id_masks.items():
         output_path = os.path.join(output_folder, f"{id_key}.png")
-        #print(id_masks, id_key)
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
