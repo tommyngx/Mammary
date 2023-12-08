@@ -5,10 +5,11 @@ import pandas as pd
 from tqdm import tqdm
 import pydicom
 from extract_roi import extract_ROI  # Assuming you have the extract_ROI class in a separate file
+from ultralytics import YOLO
 
 def main(args):
     # Load YOLO model
-    yolo_model = load_yolo_model(args.yolo_model_path)
+    yolo_model = YOLO(args.yolo_model_path)
 
     # Automatically create a DataFrame from the images folder
     df = create_dataframe(args.images_folder)
