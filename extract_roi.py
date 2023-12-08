@@ -144,7 +144,7 @@ class extract_ROI:
             img = self.load_image(img_path)
 
             # Use your YOLO model for object detection (assuming YOLO has a method like detect)
-            results = self.detect_model.detect(img)
+            results = self.detect_model(img)
 
             # Add your logic to process results and masks here
             # Example: cropped_img = self.crop(img)
