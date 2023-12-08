@@ -148,6 +148,7 @@ class extract_ROI:
 
             # Add your logic to process results and masks here
             # Example: cropped_img = self.crop(img)
+            cropped_img = self.crop(img)
 
             # Save the processed image
             output_img_path = os.path.join(output_folder, f"processed_{os.path.basename(img_path)}")
