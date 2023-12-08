@@ -31,7 +31,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
             merged_mask = original_mask
 
         # Add the merged mask to the dictionary for the corresponding ID
-        id_key = f"{image_id}_{split}"
+        id_key = file.rsplit('_', 1)[0]
         if id_key in id_masks:
             id_masks[id_key] += merged_mask
         else:
