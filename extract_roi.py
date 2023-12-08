@@ -3,17 +3,17 @@
 # Update 8 Dec 2023
 # Tommy bugs
 # Miscellaneous utilities.
-
-import os
 import cv2
 import numpy as np
+import os
+from tqdm import tqdm
 from matplotlib import pyplot as plt
 from IPython import display
-from tqdm import tqdm
 import pydicom
+import pandas as pd
 from ultralytics import YOLO
 
-class extract_ROI():
+class extract_ROI:
     def __init__(self, df, yolo_model):
         self.df = df
         self.detect_model = yolo_model
@@ -22,20 +22,8 @@ class extract_ROI():
         self.count_access = 0
         self.count_error = 0
 
-    def __len__(self):
-        return len(self.df)
-
     def load_image(self, idx=0):
-        """
-        Method to load the image.
-
-        Parameters:
-            - idx (int or str): index or path of the image.
-
-        Returns:
-            - img (numpy.ndarray): image as an 8-bit 3-channel array.
-        """
-        path = idx
+                path = idx
         if isinstance(idx, int):
             self.df_loc = self.df.iloc[idx]
             path = self.df_loc.Path
@@ -64,16 +52,6 @@ class extract_ROI():
         return img
 
     def crop(self, img):
-        """
-        Method to crop the image based on YOLO object detection.
-        If YOLO fails to find any boxes, it falls back to using crop_threshold with extract_roi_otsu.
-
-        Parameters:
-            - img (numpy.ndarray): Input image.
-
-        Returns:
-            - img (numpy.ndarray): Cropped image.
-        """
         results = self.detect_model(img)
         boxes = results[0].boxes
 
@@ -160,28 +138,40 @@ class extract_ROI():
 
         return img
 
-    def process_and_save_images_with_masks(self, input_image_path, input_mask_path, output_image_path, output_mask_path):
-        """
-        Process a single image and its corresponding mask, and save the processed image and mask.
+    def process_and_save_images_with_masks(self, images_folder, masks_folder, output_folder):
+        for idx, row in tqdm(self.df.iterrows(), total=len(self.df)):
+            img_path = row['Path']
+            img = self.load_image(img_path)
 
-        Parameters:
-            - input_image_path (str): Path to the input image.
-            - input_mask_path (str): Path to the corresponding mask.
-            - output_image_path (str): Path to save the processed image.
-            - output_mask_path (str): Path to save the processed mask.
-        """
-        img = self.load_image(input_image_path)
-        mask = cv2.imread(input_mask_path, cv2.IMREAD_GRAYSCALE)
+            # Use your YOLO model for object detection (assuming YOLO has a method like detect)
+            results = self.detect_model.detect(img)
 
-        # Process image and mask
-        processed_img = self.crop(img)
-        processed_mask = self.crop_threshold(mask)
+            # Add your logic to process results and masks here
+            # Example: cropped_img = self.crop(img)
 
-        # Save processed image and mask
-        cv2.imwrite(output_image_path, processed_img)
-        cv2.imwrite(output_mask_path, processed_mask)
+            # Save the processed image
+            output_img_path = os.path.join(output_folder, f"processed_{os.path.basename(img_path)}")
+            cv2.imwrite(output_img_path, cropped_img)
 
-        print(f"Processed image saved to: {output_image_path}")
-        print(f"Processed mask saved to: {output_mask_path}")
+    def plot_sample(self, resize=256):
+        # Add your plot_sample logic here
+        pass
 
+# Example usage:
+if __name__ == "__main__":
+    # Example usage of YOLO model
+    yolo_model = YOLO("/path/to/your/yolo/model")
 
+    # Example DataFrame creation
+    df = pd.DataFrame({"Path": ["/path/to/images/folder/image1.jpg", "/path/to/images/folder/image2.jpg"]})
+
+    # Initialize extract_ROI object
+    extractor = extract_ROI(df, yolo_model)
+
+    # Example processing and saving
+    images_folder = "/path/to/images/folder"
+    masks_folder = "/path/to/masks/folder"
+    output_folder = "/path/to/output/folder"
+
+    extractor.process_and_save_images_with_masks(images_folder, masks_folder, output_folder)
+    # extractor.plot_sample(resize=256)  # Adjust the method based on available functionality
