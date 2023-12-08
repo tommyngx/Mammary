@@ -23,7 +23,7 @@ class extract_ROI:
         self.count_error = 0
 
     def load_image(self, idx=0):
-                path = idx
+        path = idx
         if isinstance(idx, int):
             self.df_loc = self.df.iloc[idx]
             path = self.df_loc.Path
