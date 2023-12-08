@@ -152,6 +152,7 @@ class extract_ROI:
 
             # Save the processed image
             output_img_path = os.path.join(output_folder, f"processed_{os.path.basename(img_path)}")
+            print(output_img_path)
             cv2.imwrite(output_img_path, cropped_img)
 
     def plot_sample(self, resize=256):
