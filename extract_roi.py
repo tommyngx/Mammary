@@ -160,7 +160,7 @@ class extract_ROI():
 
         return img
 
-    def process_and_save_single_image_with_mask(self, input_image_path, input_mask_path, output_image_path, output_mask_path):
+    def process_and_save_images_with_masks(self, input_image_path, input_mask_path, output_image_path, output_mask_path):
         """
         Process a single image and its corresponding mask, and save the processed image and mask.
 
