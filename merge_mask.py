@@ -1,42 +1,65 @@
 import os
 import cv2
+import pandas as pd
 import argparse
 from tqdm import tqdm
 
-def merge_masks(input_folder, output_folder):
+def merge_masks_with_conditions(df, input_folder, output_folder):
     os.makedirs(output_folder, exist_ok=True)
 
-    # Dictionary to store masks for each ID
+    # Dictionary to store masks for each ID and lesion type
     id_masks = {}
 
-    # Iterate through the input folder
-    for root, dirs, files in os.walk(input_folder):
-        for file in tqdm(files, desc="Processing masks", unit="mask"):
-            if file.lower().endswith('.png'):
-                # Extract ID from the file name
-                id_number = file.rsplit('_', 1)[0]  # Extract all characters before the last underscore
+    for index, row in tqdm(df.iterrows(), desc="Processing masks", total=len(df), unit="mask"):
+        image_id = row['image_id']
+        mask_id = row['mask_id']
+        lesion_type = row['lesion_types']
 
-                # Load the mask
-                mask_path = os.path.join(root, file)
-                mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        # Construct the original mask path
+        original_mask_path = os.path.join(input_folder, mask_id)
 
-                # Merge masks for the same ID
-                if id_number in id_masks:
-                    id_masks[id_number] += mask
-                else:
-                    id_masks[id_number] = mask
+        try:
+            # Load the original mask
+            original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE)  # Intensity values [0, 255]
 
-    # Save merged masks
-    for id_number, merged_mask in id_masks.items():
-        output_path = os.path.join(output_folder, f"{id_number}.png")
-        cv2.imwrite(output_path, merged_mask)
+            # Normalize intensity values to range [0, 1]
+            original_mask = original_mask / 255.0
+
+            # Merge masks based on conditions
+            if lesion_type == 'Mass':
+                intensity = 0.75
+            elif lesion_type == 'Architecturaldistorsion':
+                intensity = 0.25
+            elif lesion_type == 'Asymmetry':
+                intensity = 0.50
+            elif lesion_type == 'Microcalcification':
+                intensity = 1.0
+
+            # Get the existing mask for the same ID and lesion type, or create a new one
+            existing_mask = id_masks.get((image_id, lesion_type), None)
+            if existing_mask is not None:
+                id_masks[(image_id, lesion_type)] += original_mask * intensity
+            else:
+                id_masks[(image_id, lesion_type)] = original_mask * intensity
+
+        except Exception as e:
+            print(f"Error processing mask {mask_id}: {str(e)}")
+
+    # Save merged masks for each ID and lesion type
+    for (image_id, lesion_type), merged_mask in id_masks.items():
+        output_path = os.path.join(output_folder, f"{image_id}_{lesion_type}_merged.png")
+        cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Merge masks based on ID.")
-    parser.add_argument("--input_folder", required=True, help="Path to the input folder containing masks.")
+    parser = argparse.ArgumentParser(description="Merge masks based on conditions.")
+    parser.add_argument("--input_folder", required=True, help="Path to the input folder containing original masks.")
     parser.add_argument("--output_folder", required=True, help="Path to the output folder for merged masks.")
+    parser.add_argument("--csv_path", required=True, help="Path to the CSV file containing DataFrame information.")
 
     args = parser.parse_args()
 
-    # Merge masks
-    merge_masks(args.input_folder, args.output_folder)
+    # Load the DataFrame
+    df = pd.read_csv(args.csv_path)
+
+    # Merge masks based on conditions
+    merge_masks_with_conditions(df, args.input_folder, args.output_folder)
