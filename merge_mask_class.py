@@ -16,6 +16,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
         lesion_type = row['lesion_types']
         split = row['split']
 
+        print(image_id, mask_id, lesion_type)
         # Construct the original mask path
         original_mask_path = os.path.join(input_folder, mask_id)
 
