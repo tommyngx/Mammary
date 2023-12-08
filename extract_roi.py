@@ -139,6 +139,7 @@ class extract_ROI:
         return img
 
     def process_and_save_images_with_masks(self, images_folder, masks_folder, output_folder):
+        os.makedirs(output_folder, exist_ok=True)
         for idx, row in tqdm(self.df.iterrows(), total=len(self.df)):
             img_path = row['Path']
             img = self.load_image(img_path)
