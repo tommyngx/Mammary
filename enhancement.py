@@ -28,59 +28,21 @@ def apply_clahe(img):
 
     return enhanced_img
 
-def apply_musica(img):
-    def resize_image(img):
-        return cv2.resize(img, (img.shape[1] & -2, img.shape[0] & -2))
+def apply_retinex(img):
+    # Convert image to float32 for Retinex algorithm
+    img_float32 = img.astype(np.float32) / 255.0
 
-    def laplacian_pyramid(img, L):
-        gauss = gaussian_pyramid(img, L)
-        lp = []
-        for layer in range(L):
-            tmp = cv2.pyrUp(gauss[layer + 1], dstsize=(gauss[layer].shape[1], gauss[layer].shape[0]))[:gauss[layer].shape[0], :gauss[layer].shape[1]]
-            tmp_channels = tmp.shape[2]
-            gauss_layer_channels = gauss[layer][:, :, :tmp_channels]
-            tmp = gauss_layer_channels - tmp
-            lp.append(tmp)
-        lp.append(gauss[L][:, :, :3])
-        return lp
+    # Perform MSRCR (Multi-Scale Retinex with Color Restoration)
+    img_msrcr = cv2.xphoto.createSimpleWB()
+    img_msrcr.setSigma(15)
+    img_msrcr.setSaturationThreshold(0.02)
+    img_msrcr.setRangeMaxVal(1.99)
+    img_retinex = img_msrcr.balanceWhite(img_float32)
 
-    def gaussian_pyramid(img, L):
-        tmp = resize_image(img)
-        gp = [tmp]
-        for layer in range(L):
-            tmp = cv2.pyrDown(tmp)
-            gp.append(tmp)
-        return gp
+    # Convert the result back to uint8
+    img_retinex = (img_retinex * 255).astype(np.uint8)
 
-    L = 3  # You can adjust this parameter as needed
-    params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
-
-    # Create Laplacian pyramid
-    lp = laplacian_pyramid(img, L)
-
-    # Enhance coefficients
-    M = params['M']
-    p = params['p']
-    a = params['a']
-    for layer in range(L):
-        x = lp[layer]
-        x[x < 0] = 0.0
-        G = a[layer] * M
-        enhanced_layer = G * np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
-                                          np.power(np.divide(np.abs(x), M), p))
-        # Clip values to the valid range [0, 255]
-        lp[layer] = np.clip(enhanced_layer, 0, 255).astype(np.uint8)
-
-
-    # Reconstruct image
-    rs = resize_image(img)
-    for i in range(L - 1, -1, -1):
-        expanded = pyramid_expand(rs, upscale=2, multichannel=True, preserve_range=True)
-        rs = expanded + lp[i]
-
-    return rs[:img.shape[0], :img.shape[1]]
-
-
+    return img_retinex
 
 
 def enhance_images(input_folder, output_folder, styles):
@@ -102,7 +64,7 @@ def enhance_images(input_folder, output_folder, styles):
                 for style in styles:
                     if style == 'clahe':
                         img = apply_clahe(img)
-                    elif style == 'musica':
+                    elif style == 'retinex':
                         img = apply_musica(img)
                     # Add more styles as needed
 
@@ -113,7 +75,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Apply image enhancement techniques.")
     parser.add_argument("--input_folder", required=True, help="Path to the input folder containing images.")
     parser.add_argument("--output_folder", required=True, help="Path to the output folder for enhanced images.")
-    parser.add_argument("--styles", nargs='+', choices=['truncate_normalize', 'clahe', 'musica'], default=['truncate_normalize'], help="Enhancement styles to apply.")
+    parser.add_argument("--styles", nargs='+', choices=['truncate_normalize', 'clahe', 'retinex'], default=['truncate_normalize'], help="Enhancement styles to apply.")
 
     args = parser.parse_args()
 
