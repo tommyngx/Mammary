@@ -26,22 +26,79 @@ def apply_clahe(img):
     return enhanced_img
 
 def apply_musica(img):
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    def isPowerofTwo(x):
+        return x and (not(x & (x - 1)))
 
-    # Apply Laplacian pyramid
-    pyramids = [gray]
-    for i in range(5):
-        gray = cv2.pyrDown(gray)
-        pyramids.append(gray)
+    def findNextPowerOf2(n):
+        n = n - 1
+        while n & n - 1:
+            n = n & n - 1
+        return n << 1
 
-    # Amplify contrast using Laplacian pyramid
-    enhanced_img = pyramids[-1]
-    for i in range(4, 0, -1):
-        expanded = cv2.pyrUp(enhanced_img)
-        enhanced_img = cv2.addWeighted(pyramids[i], 2, expanded, -1, 0)
+    def resize_image(img):
+        row, col = img.shape
+        if isPowerofTwo(row):
+            rowdiff = 0
+        else:
+            nextpower = findNextPowerOf2(row)
+            rowdiff = nextpower - row
 
-    return enhanced_img
+        if isPowerofTwo(col):
+            coldiff = 0
+        else:
+            nextpower = findNextPowerOf2(col)
+            coldiff = nextpower - col
+
+        img_ = np.pad(img, ((0, rowdiff), (0, coldiff)), 'reflect')
+        logger.info('Image padded from [{},{}] to [{},{}]'.format(img.shape[0], img.shape[1], img_.shape[0], img_.shape[1]))
+        return img_
+
+    def gaussian_pyramid(img, L):
+        tmp = copy.deepcopy(img)
+        gp = [tmp]
+        for layer in range(L):
+            tmp = pyramid_reduce(tmp, preserve_range=True)
+            gp.append(tmp)
+        return gp
+
+    def laplacian_pyramid(img, L):
+        gauss = gaussian_pyramid(img, L)
+        lp = []
+        for layer in range(L):
+            tmp = pyramid_expand(gauss[layer+1], preserve_range=True)
+            tmp = gauss[layer] - tmp
+            lp.append(tmp)
+        lp.append(gauss[L])
+        return lp, gauss
+
+    def enhance_coefficients(laplacian, L, params):
+        M = params['M']
+        p = params['p']
+        a = params['a']
+        for layer in range(L):
+            x = laplacian[layer]
+            x[x < 0] = 0.0
+            G = a[layer]*M
+            laplacian[layer] = G*np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0), np.power(np.divide(np.abs(x), M), p))
+        return laplacian
+
+    def reconstruct_image(laplacian, L):
+        rs = laplacian[L]
+        for i in range(L-1, -1, -1):
+            rs = pyramid_expand(rs, preserve_range=True)
+            rs = np.add(rs, laplacian[i])
+        return rs
+
+    L = 3  # You can adjust this parameter as needed
+    params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
+
+    img_resized = resize_image(img)
+    lp, _ = laplacian_pyramid(img_resized, L)
+    lp = enhance_coefficients(lp, L, params)
+    rs = reconstruct_image(lp, L)
+    rs = rs[:img.shape[0], :img.shape[1]]
+    
+    return rs
 
 def enhance_images(input_folder, output_folder, styles):
     os.makedirs(output_folder, exist_ok=True)
