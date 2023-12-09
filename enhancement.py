@@ -30,66 +30,36 @@ def apply_clahe(img):
 
 
 def apply_musica(img):
-    def isPowerofTwo(x):
-        return x and (not (x & (x - 1)))
-
-    def findNextPowerOf2(n):
-        n = n - 1
-        while n & n - 1:
-            n = n & n - 1
-        return n << 1
-
     def resize_image(img):
-        row, col, _ = img.shape
-        if isPowerofTwo(row) and isPowerofTwo(col):
-            return img
-        else:
-            next_row = findNextPowerOf2(row)
-            next_col = findNextPowerOf2(col)
-            return cv2.resize(img, (next_col, next_row))
+        return cv2.resize(img, (img.shape[1] & -2, img.shape[0] & -2))
 
     def laplacian_pyramid(img, L):
-        gauss = [img]
+        gp = [img]
         for _ in range(L):
-            img = pyramid_reduce(img, preserve_range=True)
-            gauss.append(img)
-        lp = [gauss[L]]
-        for layer in range(L, 0, -1):
-            expanded = pyramid_expand(gauss[layer], preserve_range=True)
-            lp.append(gauss[layer - 1] - expanded)
-        return lp
+            img = pyramid_reduce(img, downscale=2, multichannel=True)
+            gp.append(img)
+        return gp
 
-    def enhance_coefficients(laplacian, L, params):
-        M = params['M']
-        p = params['p']
-        a = params['a']
-        for layer in range(L):
-            x = laplacian[layer]
-            x[x < 0] = 0.0
-            G = a[layer] * M
-            laplacian[layer] = G * np.multiply(
-                np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
-                np.power(np.divide(np.abs(x), M), p)
-            )
-        return laplacian
-
-    def reconstruct_image(laplacian, L):
-        rs = laplacian[L]
-        for i in range(L - 1, 0, -1):
-            rs = pyramid_expand(rs, preserve_range=True)
-            rs = np.add(rs, laplacian[i])
-        return rs
+    def reconstruct_image(lp):
+        img_reconstructed = lp[-1]
+        for layer in reversed(lp[:-1]):
+            img_reconstructed = pyramid_expand(img_reconstructed, upscale=2, multichannel=True)
+            img_reconstructed = cv2.addWeighted(layer, 1, img_reconstructed, 1, 0)
+        return img_reconstructed
 
     L = 3  # You can adjust this parameter as needed
-    params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
 
+    # Resize image
     img_resized = resize_image(img)
-    lp = laplacian_pyramid(img_resized, L)
-    lp = enhance_coefficients(lp, L, params)
-    rs = reconstruct_image(lp, L)
-    rs = rs[:img.shape[0], :img.shape[1]]
 
-    return rs
+    # Laplacian pyramid
+    lp = laplacian_pyramid(img_resized, L)
+
+    # Reconstruct image
+    img_enhanced = reconstruct_image(lp)
+
+    return img_enhanced
+
 
 
 def enhance_images(input_folder, output_folder, styles):
