@@ -52,7 +52,7 @@ class extract_ROI:
         return img
 
     def crop(self, img):
-        results = self.detect_model(img)
+        results = self.detect_model(img, verbose=False, boxes=False)
         boxes = results[0].boxes
 
         if len(boxes) == 0:
