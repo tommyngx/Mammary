@@ -66,9 +66,8 @@ def apply_musica(img):
         x = lp[layer]
         x[x < 0] = 0.0
         G = a[layer] * M
-        enhanced_layer = G * np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
-                                         np.power(np.divide(np.abs(x), M), p))
-        lp[layer] = (enhanced_layer).astype(np.uint8)
+        lp[layer] = (G * np.multiply(np.divide(x, np.abs(x) + 1e-10, out=np.zeros_like(x), where=x != 0),
+                                     np.power(np.divide(np.abs(x), M), p))).astype(np.uint8)
 
     # Reconstruct image
     rs = resize_image(img)
