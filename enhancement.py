@@ -29,10 +29,10 @@ def apply_clahe(img):
     return enhanced_img
 
 def gaussian_pyramid(img, L):
-    tmp = copy.deepcopy(img)
+    tmp = img.copy()
     gp = [tmp]
     for layer in range(L):
-        tmp = pyramid_reduce(tmp, preserve_range=True)
+        tmp = cv2.pyrDown(tmp)
         gp.append(tmp)
     return gp
 
