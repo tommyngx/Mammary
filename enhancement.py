@@ -49,7 +49,7 @@ def apply_musica(img):
         gauss = gaussian_pyramid(img, L)
         lp = []
         for layer in range(L):
-            tmp = pyramid_expand(gauss[layer+1][:, :, :3], preserve_range=True)
+            tmp = pyramid_expand(gauss[layer + 1][:, :, :3], preserve_range=True)
             tmp = gauss[layer][:, :, :3] - tmp
             lp.append(tmp)
         lp.append(gauss[L][:, :, :3])
