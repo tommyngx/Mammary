@@ -49,11 +49,13 @@ def apply_musica(img):
         gauss = gaussian_pyramid(img, L)
         lp = []
         for layer in range(L):
-            tmp = pyramid_expand(gauss[layer + 1][:, :, :3], preserve_range=True)
-            tmp = gauss[layer][:, :, :3] - tmp
+            tmp_expanded = pyramid_expand(gauss[layer + 1][:, :, :3], preserve_range=True)
+            tmp_expanded = np.stack([tmp_expanded] * img.shape[2], axis=-1)  # Ensure the same number of channels
+            tmp = gauss[layer][:, :, :3] - tmp_expanded
             lp.append(tmp)
         lp.append(gauss[L][:, :, :3])
         return lp, gauss
+
 
     def enhance_coefficients(laplacian, L, params):
         M = params['M']
