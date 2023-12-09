@@ -35,24 +35,6 @@ def apply_musica(img):
             n = n & n - 1
         return n << 1
 
-    def resize_image(img):
-        row, col = img.shape
-        if isPowerofTwo(row):
-            rowdiff = 0
-        else:
-            nextpower = findNextPowerOf2(row)
-            rowdiff = nextpower - row
-
-        if isPowerofTwo(col):
-            coldiff = 0
-        else:
-            nextpower = findNextPowerOf2(col)
-            coldiff = nextpower - col
-
-        img_ = np.pad(img, ((0, rowdiff), (0, coldiff)), 'reflect')
-        logger.info('Image padded from [{},{}] to [{},{}]'.format(img.shape[0], img.shape[1], img_.shape[0], img_.shape[1]))
-        return img_
-
     def gaussian_pyramid(img, L):
         tmp = copy.deepcopy(img)
         gp = [tmp]
@@ -92,8 +74,8 @@ def apply_musica(img):
     L = 3  # You can adjust this parameter as needed
     params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
 
-    img_resized = resize_image(img)
-    lp, _ = laplacian_pyramid(img_resized, L)
+    #img_resized = resize_image(img)
+    lp, _ = laplacian_pyramid(img, L)
     lp = enhance_coefficients(lp, L, params)
     rs = reconstruct_image(lp, L)
     rs = rs[:img.shape[0], :img.shape[1]]
