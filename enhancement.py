@@ -28,6 +28,13 @@ def apply_clahe(img):
 
     return enhanced_img
 
+def gaussian_pyramid(img, L):
+    tmp = copy.deepcopy(img)
+    gp = [tmp]
+    for layer in range(L):
+        tmp = pyramid_reduce(tmp, preserve_range=True)
+        gp.append(tmp)
+    return gp
 
 def apply_musica(img):
     def resize_image(img):
