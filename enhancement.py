@@ -1,80 +1,81 @@
 import os
 import cv2
 import argparse
-import numpy as np
 from tqdm import tqdm
 
 def truncate_normalize(img):
-    img_min = np.min(img)
-    img_max = np.max(img)
-    normalized_img = (img - img_min) / (img_max - img_min)
-    return normalized_img
+    return cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
 
-def apply_clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):
-    lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    lab_planes = cv2.split(lab_img)
-    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
-    lab_planes[0] = clahe.apply(lab_planes[0])
-    clahe_img = cv2.merge(lab_planes)
-    return cv2.cvtColor(clahe_img, cv2.COLOR_LAB2BGR)
+def apply_clahe(img):
+    # Convert to LAB color space
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 
-def apply_musica(img, alpha=2.5, beta=1.5, pyramid_levels=4):
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gaussian_pyramid = [img_gray]
+    # Split channels
+    l, a, b = cv2.split(lab)
 
-    for i in range(pyramid_levels):
-        img_gray = cv2.pyrDown(img_gray)
-        gaussian_pyramid.append(img_gray)
+    # Apply CLAHE to L channel
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+    cl = clahe.apply(l)
 
-    laplacian_pyramid = [gaussian_pyramid[-1]]
+    # Merge channels
+    enhanced_img = cv2.merge([cl, a, b])
 
-    for i in range(pyramid_levels, 0, -1):
-        laplacian = cv2.subtract(gaussian_pyramid[i - 1], cv2.pyrUp(gaussian_pyramid[i]))
-        laplacian_pyramid.append(laplacian)
+    # Convert back to BGR color space
+    enhanced_img = cv2.cvtColor(enhanced_img, cv2.COLOR_LAB2BGR)
 
-    musica_pyramid = []
+    return enhanced_img
 
-    for laplacian, gauss in zip(laplacian_pyramid, reversed(gaussian_pyramid[:-1])):
-        enhanced_layer = cv2.addWeighted(laplacian, alpha, gauss, beta, 0)
-        musica_pyramid.append(enhanced_layer)
+def apply_musica(img):
+    # Convert to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    enhanced_img = np.sum(musica_pyramid, axis=0)
-    return cv2.cvtColor(enhanced_img.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    # Apply Laplacian pyramid
+    pyramids = [gray]
+    for i in range(5):
+        gray = cv2.pyrDown(gray)
+        pyramids.append(gray)
 
-def enhance_images(source_folder, destination_folder, styles):
-    for root, dirs, files in os.walk(source_folder):
-        relative_path = os.path.relpath(root, source_folder)
-        destination_path = os.path.join(destination_folder, relative_path)
+    # Amplify contrast using Laplacian pyramid
+    enhanced_img = pyramids[-1]
+    for i in range(4, 0, -1):
+        expanded = cv2.pyrUp(enhanced_img)
+        enhanced_img = cv2.addWeighted(pyramids[i], 2, expanded, -1, 0)
 
-        for file in tqdm(files, desc=f"Enhancing images in {relative_path}", unit="image"):
+    return enhanced_img
+
+def enhance_images(input_folder, output_folder, styles):
+    os.makedirs(output_folder, exist_ok=True)
+
+    for root, dirs, files in os.walk(input_folder):
+        for file in tqdm(files, desc="Processing images", unit="image"):
             if file.lower().endswith(('.png', '.jpg', '.jpeg', '.dcm')):
-                source_image_path = os.path.join(root, file)
-                destination_image_path = os.path.join(destination_path, file)
-
-                os.makedirs(destination_path, exist_ok=True)
+                input_image_path = os.path.join(root, file)
+                output_image_path = os.path.join(output_folder, file)
 
                 # Load the image
-                img = cv2.imread(source_image_path)
+                img = cv2.imread(input_image_path)
+
+                # Convert to 0-255 scale
+                img = truncate_normalize(img)
 
                 # Apply selected enhancement styles
                 for style in styles:
-                    if style == 'truncate_normalize':
-                        img = truncate_normalize(img)
-                    elif style == 'clahe':
+                    if style == 'clahe':
                         img = apply_clahe(img)
                     elif style == 'musica':
                         img = apply_musica(img)
+                    # Add more styles as needed
 
                 # Save the enhanced image
-                cv2.imwrite(destination_image_path, img)
+                cv2.imwrite(output_image_path, img)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Enhance images with various styles.")
-    parser.add_argument("--source_folder", required=True, help="Path to the source folder containing images.")
-    parser.add_argument("--destination_folder", required=True, help="Path to the destination folder for enhanced images.")
-    parser.add_argument("--styles", nargs='+', default=['truncate_normalize'], choices=['truncate_normalize', 'clahe', 'musica'], help="Enhancement styles to apply.")
+    parser = argparse.ArgumentParser(description="Apply image enhancement techniques.")
+    parser.add_argument("--input_folder", required=True, help="Path to the input folder containing images.")
+    parser.add_argument("--output_folder", required=True, help="Path to the output folder for enhanced images.")
+    parser.add_argument("--styles", nargs='+', choices=['truncate_normalize', 'clahe', 'musica'], default=['truncate_normalize'], help="Enhancement styles to apply.")
 
     args = parser.parse_args()
 
     # Enhance images
-    enhance_images(args.source_folder, args.destination_folder, args.styles)
+    enhance_images(args.input_folder, args.output_folder, args.styles)
