@@ -34,6 +34,8 @@ def merge_masks_part(df_part, input_folder, output_folder, desc):
         mask_id = row['mask_id']
         lesion_type = row['lesion_types']
 
+        # Normalize intensity values to range [0, 1]
+        original_mask = original_mask / 255.0
         # Construct the original mask path
         original_mask_path = os.path.join(input_folder, mask_id)
 
