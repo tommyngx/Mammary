@@ -22,7 +22,7 @@ def check_size_match(images_folder, mask_folder):
             mask_size = os.path.getsize(mask_path)
 
             if image_size != mask_size:
-                print(f"Size mismatch for file: {file_name}")
+                print(f"Size mismatch for file: {file_name} - Image {image_size} - Mask {mask_size}")
         except FileNotFoundError:
             print(f"File not found in both folders: {file_name}")
 
