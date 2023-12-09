@@ -44,7 +44,6 @@ def apply_retinex(img):
 
     return img_retinex
 
-
 def enhance_images(input_folder, output_folder, styles):
     os.makedirs(output_folder, exist_ok=True)
 
@@ -65,7 +64,7 @@ def enhance_images(input_folder, output_folder, styles):
                     if style == 'clahe':
                         img = apply_clahe(img)
                     elif style == 'retinex':
-                        img = apply_musica(img)
+                        img = apply_retinex(img)
                     # Add more styles as needed
 
                 # Save the enhanced image
