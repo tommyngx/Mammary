@@ -31,34 +31,49 @@ def apply_clahe(img):
 
 def apply_musica(img):
     def resize_image(img):
-        return cv2.resize(img, (img.shape[1] & -2, img.shape[0] & -2))
+        return cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2))
 
     def laplacian_pyramid(img, L):
-        gp = [img]
+        gauss = [img]
         for _ in range(L):
-            img = pyramid_reduce(img, downscale=2, multichannel=True)
-            gp.append(img)
-        return gp
+            img = resize_image(img)
+            gauss.append(img)
 
-    def reconstruct_image(lp):
-        img_reconstructed = lp[-1]
-        for layer in reversed(lp[:-1]):
-            img_reconstructed = pyramid_expand(img_reconstructed, upscale=2, multichannel=True)
-            img_reconstructed = cv2.addWeighted(layer, 1, img_reconstructed, 1, 0)
-        return img_reconstructed
+        lp = []
+        for layer in range(L):
+            expanded = pyramid_expand(gauss[layer + 1], upscale=2, multichannel=True, preserve_range=True)
+            layer_img = gauss[layer] - expanded
+            lp.append(layer_img)
+
+        return lp
 
     L = 3  # You can adjust this parameter as needed
+    params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
 
     # Resize image
     img_resized = resize_image(img)
 
-    # Laplacian pyramid
+    # Create Laplacian pyramid
     lp = laplacian_pyramid(img_resized, L)
 
-    # Reconstruct image
-    img_enhanced = reconstruct_image(lp)
+    # Enhance coefficients
+    M = params['M']
+    p = params['p']
+    a = params['a']
+    for layer in range(L):
+        x = lp[layer]
+        x[x < 0] = 0.0
+        G = a[layer] * M
+        lp[layer] = G * np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
+                                     np.power(np.divide(np.abs(x), M), p))
 
-    return img_enhanced
+    # Reconstruct image
+    rs = img_resized
+    for i in range(L - 1, -1, -1):
+        expanded = pyramid_expand(rs, upscale=2, multichannel=True, preserve_range=True)
+        rs = expanded + lp[i]
+
+    return rs[:img.shape[0], :img.shape[1]]
 
 
 
