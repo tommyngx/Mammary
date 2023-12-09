@@ -2,16 +2,34 @@ import os
 import cv2
 import pandas as pd
 import argparse
+import numpy as np
 from tqdm import tqdm
 
-def merge_masks_with_conditions(df, input_folder, output_folder):
+def merge_masks_with_intensity(df, input_folder, output_folder, index_split):
     os.makedirs(output_folder, exist_ok=True)
 
+    # Split DataFrame into two parts
+    if index_split > 0 and index_split < len(df):
+        df_part1 = df.iloc[:index_split]
+        df_part2 = df.iloc[index_split:]
+    else:
+        print("Invalid index_split value. Using the entire DataFrame.")
+        df_part1 = df
+        df_part2 = pd.DataFrame()
+
+    # Process part 1
+    if not df_part1.empty:
+        merge_masks_part(df_part1, input_folder, output_folder, "Part 1")
+
+    # Process part 2
+    if not df_part2.empty:
+        merge_masks_part(df_part2, input_folder, output_folder, "Part 2")
+
+def merge_masks_part(df_part, input_folder, output_folder, desc):
     # Dictionary to store masks for each ID
     id_masks = {}
 
-    # Apply intensity to all images based on the lesion_types column
-    for index, row in tqdm(df.iterrows(), desc="Applying intensity to images", total=len(df), unit="image"):
+    for index, row in tqdm(df_part.iterrows(), desc=f"Processing masks - {desc}", total=len(df_part), unit="mask"):
         image_id = row['image_id']
         mask_id = row['mask_id']
         lesion_type = row['lesion_types']
@@ -23,7 +41,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
             # Load the original mask
             original_mask = cv2.imread(original_mask_path, cv2.IMREAD_GRAYSCALE)  # Intensity values [0, 255]
 
-            # Normalize intensity values to range [0, 1] based on lesion type
+            # Normalize intensity values to range [0, 1] based on lesion_types
             if lesion_type == 'Mass':
                 intensity = 0.25
             elif lesion_type == 'Architecturaldistorsion':
@@ -33,11 +51,10 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
             elif lesion_type == 'Microcalcification':
                 intensity = 1.0
 
-            # Apply intensity to the image
             original_mask = original_mask * intensity
 
             # Merge masks for the same ID
-            id_number = mask_id.rsplit('_', 1)[0]
+            id_number = image_id
             if id_number in id_masks:
                 id_masks[id_number] += original_mask
             else:
@@ -46,12 +63,11 @@ def merge_masks_with_conditions(df, input_folder, output_folder):
         except Exception as e:
             print(f"Error processing mask {mask_id}: {str(e)}")
 
-    # Save merged masks
-    for id_number, merged_mask in tqdm(id_masks.items(), desc="Saving merged masks", unit="mask"):
-        # Set values higher than 1 to 1
-        merged_mask[merged_mask > 1] = 1
-
+    # Save merged masks for each ID
+    for id_number, merged_mask in tqdm(id_masks.items(), desc=f"Saving merged masks - {desc}", unit="mask"):
         output_path = os.path.join(output_folder, f"{id_number}.png")
+        # Cap values at 1
+        merged_mask[merged_mask > 1] = 1
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
 
 if __name__ == "__main__":
@@ -59,11 +75,12 @@ if __name__ == "__main__":
     parser.add_argument("--input_folder", required=True, help="Path to the input folder containing original masks.")
     parser.add_argument("--output_folder", required=True, help="Path to the output folder for merged masks.")
     parser.add_argument("--csv_path", required=True, help="Path to the CSV file containing DataFrame information.")
+    parser.add_argument("--index_split", type=int, default=0, help="Index to split the DataFrame into two parts.")
 
     args = parser.parse_args()
 
     # Load the DataFrame
     df = pd.read_csv(args.csv_path)
 
-    # Merge masks based on conditions
-    merge_masks_with_conditions(df, args.input_folder, args.output_folder)
+    # Merge masks with intensity based on lesion_types
+    merge_masks_with_intensity(df, args.input_folder, args.output_folder, args.index_split)
