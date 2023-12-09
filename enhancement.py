@@ -28,11 +28,6 @@ def apply_clahe(img):
 
     return enhanced_img
 
-import cv2
-import copy
-import numpy as np
-from skimage.transform import pyramid_reduce, pyramid_expand
-
 
 def isPowerofTwo(x):
     return x and (not (x & (x - 1)))
@@ -46,20 +41,20 @@ def findNextPowerOf2(n):
 
 
 def resize_image(img):
-    row, col = img.shape
-    if isPowerofTwo(row):
-        rowdiff = 0
+    rows, cols = img.shape[:2]
+    if isPowerofTwo(rows):
+        row_diff = 0
     else:
-        nextpower = findNextPowerOf2(row)
-        rowdiff = nextpower - row
+        next_power = findNextPowerOf2(rows)
+        row_diff = next_power - rows
 
-    if isPowerofTwo(col):
-        coldiff = 0
+    if isPowerofTwo(cols):
+        col_diff = 0
     else:
-        nextpower = findNextPowerOf2(col)
-        coldiff = nextpower - col
+        next_power = findNextPowerOf2(cols)
+        col_diff = next_power - cols
 
-    img_ = np.pad(img, ((0, rowdiff), (0, coldiff)), 'reflect')
+    img_ = np.pad(img, ((0, row_diff), (0, col_diff), (0, 0)), 'reflect')
     return img_
 
 
