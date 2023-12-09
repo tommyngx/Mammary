@@ -6,36 +6,60 @@
 
 import os
 from tqdm import tqdm
+from PIL import Image
 
-def check_size_match(images_folder, mask_folder):
-    image_files = os.listdir(images_folder)
+def check_size_match(image_folder, mask_folder):
+    image_files = os.listdir(image_folder)
     mask_files = os.listdir(mask_folder)
-
-    total_files = min(len(image_files), len(mask_files))
     
-    for file_name in tqdm(image_files[:total_files], desc="Checking Size Match"):
-        image_path = os.path.join(images_folder, file_name)
-        mask_path = os.path.join(mask_folder, file_name)
+    # Ensure the same files exist in both folders
+    common_files = set(image_files) & set(mask_files)
 
-        try:
-            image_size = os.path.getsize(image_path)
-            mask_size = os.path.getsize(mask_path)
+    mismatched_files = []
 
-            if image_size != mask_size:
-                print(f"Size mismatch for file: {file_name} - Image {image_size} - Mask {mask_size}")
-        except FileNotFoundError:
-            print(f"File not found in both folders: {file_name}")
+    for file in tqdm(common_files, desc="Checking file sizes"):
+        image_path = os.path.join(image_folder, file)
+        mask_path = os.path.join(mask_folder, file)
 
-if __name__ == "__main__":
+        with Image.open(image_path) as img:
+            image_width, image_height = img.size
+
+        with Image.open(mask_path) as img:
+            mask_width, mask_height = img.size
+
+        if image_width != mask_width or image_height != mask_height:
+            mismatched_files.append({
+                'file': file,
+                'image_width': image_width,
+                'image_height': image_height,
+                'mask_width': mask_width,
+                'mask_height': mask_height,
+            })
+
+    return mismatched_files
+
+def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Check if sizes of corresponding images and masks match.')
-    parser.add_argument('images_folder', help='Path to the images folder')
-    parser.add_argument('mask_folder', help='Path to the mask folder')
+    parser = argparse.ArgumentParser(description='Check size match between images and masks.')
+    parser.add_argument('--images_folder', help='Path to the images folder', required=True)
+    parser.add_argument('--mask_folder', help='Path to the masks folder', required=True)
 
     args = parser.parse_args()
 
-    check_size_match(args.images_folder, args.mask_folder)
+    mismatched_files = check_size_match(args.images_folder, args.mask_folder)
+
+    if not mismatched_files:
+        print("All files have matching sizes.")
+    else:
+        print("Mismatched file details:")
+        for mismatch in mismatched_files:
+            print(f"File: {mismatch['file']}, Image Size: ({mismatch['image_width']}, {mismatch['image_height']}), "
+                  f"Mask Size: ({mismatch['mask_width']}, {mismatch['mask_height']})")
+
+if __name__ == "__main__":
+    main()
+
 
 
 
