@@ -28,14 +28,6 @@ def apply_clahe(img):
 
     return enhanced_img
 
-def gaussian_pyramid(img, L):
-    tmp = img.copy()
-    gp = [tmp]
-    for layer in range(L):
-        tmp = cv2.pyrDown(tmp)
-        gp.append(tmp)
-    return gp
-
 def apply_musica(img):
     def resize_image(img):
         return cv2.resize(img, (img.shape[1] & -2, img.shape[0] & -2))
@@ -52,14 +44,19 @@ def apply_musica(img):
         lp.append(gauss[L][:, :, :3])
         return lp
 
+    def gaussian_pyramid(img, L):
+        tmp = resize_image(img)
+        gp = [tmp]
+        for layer in range(L):
+            tmp = cv2.pyrDown(tmp)
+            gp.append(tmp)
+        return gp
+
     L = 3  # You can adjust this parameter as needed
     params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
 
-    # Resize image
-    img_resized = resize_image(img)
-
     # Create Laplacian pyramid
-    lp = laplacian_pyramid(img_resized, L)
+    lp = laplacian_pyramid(img, L)
 
     # Enhance coefficients
     M = params['M']
@@ -69,16 +66,17 @@ def apply_musica(img):
         x = lp[layer]
         x[x < 0] = 0.0
         G = a[layer] * M
-        lp[layer] = G * np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
-                                     np.power(np.divide(np.abs(x), M), p))
+        lp[layer] = (G * np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
+                                     np.power(np.divide(np.abs(x), M), p))).astype(np.uint8)
 
     # Reconstruct image
-    rs = img_resized
+    rs = resize_image(img)
     for i in range(L - 1, -1, -1):
         expanded = pyramid_expand(rs, upscale=2, multichannel=True, preserve_range=True)
         rs = expanded + lp[i]
 
     return rs[:img.shape[0], :img.shape[1]]
+
 
 
 
