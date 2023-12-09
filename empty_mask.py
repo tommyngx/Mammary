@@ -9,6 +9,7 @@ import argparse
 from tqdm import tqdm
 import pandas as pd
 from PIL import Image
+import numpy as np
 
 def is_empty_mask(mask_path):
     # Function to check if a mask is empty (all pixel values are 0)
