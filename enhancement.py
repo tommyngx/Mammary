@@ -29,20 +29,26 @@ def apply_clahe(img):
     return enhanced_img
 
 def apply_retinex(img):
-    # Convert image to float32 for Retinex algorithm
-    img_float32 = img.astype(np.float32) / 255.0
+    # Convert image to float32 for accurate calculations
+    img_float = img.astype(np.float32)
 
-    # Perform MSRCR (Multi-Scale Retinex with Color Restoration)
-    img_msrcr = cv2.xphoto.createSimpleWB()
-    img_msrcr.setSigma(15)
-    img_msrcr.setSaturationThreshold(0.02)
-    img_msrcr.setRangeMaxVal(1.99)
-    img_retinex = img_msrcr.balanceWhite(img_float32)
+    # Logarithmic transform to enhance the dynamic range
+    img_log = np.log1p(img_float)
 
-    # Convert the result back to uint8
-    img_retinex = (img_retinex * 255).astype(np.uint8)
+    # Apply MSRCR
+    sigma_list = [15, 80, 250]
+    retinex = np.zeros_like(img_float)
+    for sigma in sigma_list:
+        img_blur = cv2.GaussianBlur(img_log, (0, 0), sigma)
+        retinex += img_log - img_blur
 
-    return img_retinex
+    # Scale the enhanced image to the range [0, 255]
+    retinex = (retinex - np.min(retinex)) / (np.max(retinex) - np.min(retinex)) * 255
+
+    # Convert back to uint8
+    retinex = retinex.astype(np.uint8)
+
+    return retinex
 
 def enhance_images(input_folder, output_folder, styles):
     os.makedirs(output_folder, exist_ok=True)
