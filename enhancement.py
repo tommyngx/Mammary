@@ -29,93 +29,66 @@ def apply_clahe(img):
     return enhanced_img
 
 
-def isPowerofTwo(x):
-    return x and (not (x & (x - 1)))
+def apply_musica(img):
+    def isPowerofTwo(x):
+        return x and (not (x & (x - 1)))
 
+    def findNextPowerOf2(n):
+        n = n - 1
+        while n & n - 1:
+            n = n & n - 1
+        return n << 1
 
-def findNextPowerOf2(n):
-    n = n - 1
-    while n & n - 1:
-        n = n & n - 1
-    return n << 1
+    def resize_image(img):
+        row, col, _ = img.shape
+        if isPowerofTwo(row) and isPowerofTwo(col):
+            return img
+        else:
+            next_row = findNextPowerOf2(row)
+            next_col = findNextPowerOf2(col)
+            return cv2.resize(img, (next_col, next_row))
 
+    def laplacian_pyramid(img, L):
+        gauss = [img]
+        for _ in range(L):
+            img = pyramid_reduce(img, preserve_range=True)
+            gauss.append(img)
+        lp = [gauss[L]]
+        for layer in range(L, 0, -1):
+            expanded = pyramid_expand(gauss[layer], preserve_range=True)
+            lp.append(gauss[layer - 1] - expanded)
+        return lp
 
-def resize_image(img):
-    rows, cols = img.shape[:2]
-    if isPowerofTwo(rows):
-        row_diff = 0
-    else:
-        next_power = findNextPowerOf2(rows)
-        row_diff = next_power - rows
+    def enhance_coefficients(laplacian, L, params):
+        M = params['M']
+        p = params['p']
+        a = params['a']
+        for layer in range(L):
+            x = laplacian[layer]
+            x[x < 0] = 0.0
+            G = a[layer] * M
+            laplacian[layer] = G * np.multiply(
+                np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
+                np.power(np.divide(np.abs(x), M), p)
+            )
+        return laplacian
 
-    if isPowerofTwo(cols):
-        col_diff = 0
-    else:
-        next_power = findNextPowerOf2(cols)
-        col_diff = next_power - cols
+    def reconstruct_image(laplacian, L):
+        rs = laplacian[L]
+        for i in range(L - 1, 0, -1):
+            rs = pyramid_expand(rs, preserve_range=True)
+            rs = np.add(rs, laplacian[i])
+        return rs
 
-    img_ = np.pad(img, ((0, row_diff), (0, col_diff), (0, 0)), 'reflect')
-    return img_
-
-
-def gaussian_pyramid(img, L):
-    tmp = copy.deepcopy(img)
-    gp = [tmp]
-    for layer in range(L):
-        tmp = pyramid_reduce(tmp, preserve_range=True)
-        gp.append(tmp)
-    return gp
-
-
-def laplacian_pyramid(img, L):
-    gauss = gaussian_pyramid(img, L)
-    lp = []
-    for layer in range(L):
-        tmp = pyramid_expand(gauss[layer + 1][:, :, :3], preserve_range=True)
-        
-        # Ensure the number of channels is consistent
-        gauss_layer_channels = gauss[layer][:, :, :3]
-        
-        tmp_channels = tmp.shape[2]
-        if tmp_channels < gauss_layer_channels.shape[2]:
-            gauss_layer_channels = gauss_layer_channels[:, :, :tmp_channels]
-        
-        tmp = gauss_layer_channels - tmp
-        lp.append(tmp)
-    lp.append(gauss[L][:, :, :3])
-    return lp
-
-
-def enhance_coefficients(laplacian, L, params):
-    M = params['M']
-    p = params['p']
-    a = params['a']
-    for layer in range(L):
-        x = laplacian[layer]
-        x[x < 0] = 0.0
-        G = a[layer] * M
-        laplacian[layer] = G * np.multiply(np.divide(x, np.abs(x), out=np.zeros_like(x), where=x != 0),
-                                           np.power(np.divide(np.abs(x), M), p))
-    return laplacian
-
-
-def reconstruct_image(laplacian, L):
-    rs = laplacian[L]
-    for i in range(L - 1, -1, -1):
-        rs = pyramid_expand(rs, preserve_range=True)
-        rs = np.add(rs, laplacian[i])
-    return rs
-
-
-def apply_musica(img, L=3, params=None):
-    if params is None:
-        params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}
+    L = 3  # You can adjust this parameter as needed
+    params = {'M': 50, 'p': 0.5, 'a': [1, 1, 1]}  # You can adjust these parameters as needed
 
     img_resized = resize_image(img)
     lp = laplacian_pyramid(img_resized, L)
     lp = enhance_coefficients(lp, L, params)
     rs = reconstruct_image(lp, L)
     rs = rs[:img.shape[0], :img.shape[1]]
+
     return rs
 
 
