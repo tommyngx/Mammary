@@ -71,15 +71,18 @@ def laplacian_pyramid(img, L):
     gauss = gaussian_pyramid(img, L)
     lp = []
     for layer in range(L):
-        tmp = pyramid_expand(gauss[layer + 1], preserve_range=True)
-        tmp_channels = tmp.shape[2]
+        tmp = pyramid_expand(gauss[layer + 1][:, :, :3], preserve_range=True)
         
         # Ensure the number of channels is consistent
-        gauss_layer_channels = gauss[layer][:, :, :tmp_channels]
+        gauss_layer_channels = gauss[layer][:, :, :3]
+        
+        tmp_channels = tmp.shape[2]
+        if tmp_channels < gauss_layer_channels.shape[2]:
+            gauss_layer_channels = gauss_layer_channels[:, :, :tmp_channels]
         
         tmp = gauss_layer_channels - tmp
         lp.append(tmp)
-    lp.append(gauss[L])
+    lp.append(gauss[L][:, :, :3])
     return lp
 
 
