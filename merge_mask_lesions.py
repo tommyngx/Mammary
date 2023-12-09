@@ -65,7 +65,7 @@ def merge_masks_part(df_part, input_folder, output_folder, desc):
 
     # Save merged masks for each ID
     for id_number, merged_mask in tqdm(id_masks.items(), desc=f"Saving merged masks - {desc}", unit="mask"):
-        output_path = os.path.join(output_folder, f"{id_number}.png")
+        output_path = os.path.join(output_folder, f"{id_number}")
         # Cap values at 1
         merged_mask[merged_mask > 1] = 1
         cv2.imwrite(output_path, (merged_mask * 255).astype(int))
