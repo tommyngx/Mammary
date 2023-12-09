@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import cv2
 import argparse
 from tqdm import tqdm
@@ -55,7 +56,6 @@ def apply_musica(img):
             lp.append(tmp)
         lp.append(gauss[L][:, :, :3])
         return lp, gauss
-
 
     def enhance_coefficients(laplacian, L, params):
         M = params['M']
