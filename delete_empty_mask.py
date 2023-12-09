@@ -11,8 +11,8 @@ from PIL import Image
 def is_empty_mask(mask_path):
     # Function to check if a mask is empty (all pixel values are 0)
     with Image.open(mask_path) as img:
-        array = img.getchannel(3).point(lambda x: 255 if x > 0 else 0)
-        return not array.getbbox()
+        array = np.array(img)
+        return not array.any()
 
 def delete_empty_masks(images_folder, masks_folder):
     image_files = os.listdir(images_folder)
