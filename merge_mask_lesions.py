@@ -45,13 +45,13 @@ def merge_masks_part(df_part, input_folder, output_folder, desc):
 
             # Normalize intensity values to range [0, 1] based on lesion_types
             if lesion_type == 'Mass':
-                intensity = 0.25
-            elif lesion_type == 'Architecturaldistorsion':
-                intensity = 0.75
-            elif lesion_type == 'Asymmetry':
                 intensity = 0.50
+            elif lesion_type == 'Architecturaldistorsion':
+                intensity = 1.00
+            elif lesion_type == 'Asymmetry':
+                intensity = 0.75
             elif lesion_type == 'Microcalcification':
-                intensity = 1.0
+                intensity = 0.25
 
             original_mask = original_mask * intensity
 
