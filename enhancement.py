@@ -51,7 +51,7 @@ def apply_musica(img):
         lp = []
         for layer in range(L):
             tmp_expanded = pyramid_expand(gauss[layer + 1][:, :, :3], preserve_range=True)
-            tmp_expanded = np.stack([tmp_expanded] * img.shape[2], axis=-1)  # Ensure the same number of channels
+            tmp_expanded = tmp_expanded[:, :, :3]
             tmp = gauss[layer][:, :, :3] - tmp_expanded
             lp.append(tmp)
         lp.append(gauss[L][:, :, :3])
