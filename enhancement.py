@@ -31,20 +31,18 @@ def apply_clahe(img):
 
 def apply_musica(img):
     def resize_image(img):
-        return cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2))
+        return cv2.resize(img, (img.shape[1] & -2, img.shape[0] & -2))
 
     def laplacian_pyramid(img, L):
-        gauss = [img]
-        for _ in range(L):
-            img = resize_image(img)
-            gauss.append(img)
-
+        gauss = gaussian_pyramid(img, L)
         lp = []
         for layer in range(L):
-            expanded = pyramid_expand(gauss[layer + 1], upscale=2, multichannel=True, preserve_range=True)
-            layer_img = gauss[layer] - expanded
-            lp.append(layer_img)
-
+            tmp = cv2.pyrUp(gauss[layer + 1], dstsize=(gauss[layer].shape[1], gauss[layer].shape[0]))[:gauss[layer].shape[0], :gauss[layer].shape[1]]
+            tmp_channels = tmp.shape[2]
+            gauss_layer_channels = gauss[layer][:, :, :tmp_channels]
+            tmp = gauss_layer_channels - tmp
+            lp.append(tmp)
+        lp.append(gauss[L][:, :, :3])
         return lp
 
     L = 3  # You can adjust this parameter as needed
