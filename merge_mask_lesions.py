@@ -48,7 +48,7 @@ def merge_masks_with_conditions(df, input_folder, output_folder, split_df):
 
     # Save merged masks for each ID
     for image_id, first_mask in tqdm(id_first_masks.items(), desc="Saving merged masks", unit="mask"):
-        output_path = os.path.join(output_folder, f"{image_id}_merged.png")
+        output_path = os.path.join(output_folder, f"{image_id}")
         cv2.imwrite(output_path, (first_mask * 255).astype(int))
 
 if __name__ == "__main__":
