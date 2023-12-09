@@ -4,7 +4,7 @@
 # Miscellaneous utilities.
 #
 
-iimport os
+import os
 from tqdm import tqdm
 from PIL import Image
 
