@@ -50,6 +50,19 @@ def apply_retinex(img):
 
     return retinex
 
+def apply_unsharp(img, sigma=1.0, strength=1.5):
+    # Create a blurred version of the original image
+    blurred = cv2.GaussianBlur(img, (0, 0), sigma)
+
+    # Subtract the blurred image from the original
+    sharpened = cv2.addWeighted(img, 1.0 + strength, blurred, -strength, 0)
+
+    # Clip pixel values to the valid range [0, 255]
+    sharpened = np.clip(sharpened, 0, 255).astype(np.uint8)
+
+    return sharpened
+
+
 def enhance_images(input_folder, output_folder, styles):
     os.makedirs(output_folder, exist_ok=True)
 
@@ -71,7 +84,8 @@ def enhance_images(input_folder, output_folder, styles):
                         img = apply_clahe(img)
                     elif style == 'retinex':
                         img = apply_retinex(img)
-                    # Add more styles as needed
+                    elif style == 'unsharp':
+                        img = apply_unsharp(img) 
 
                 # Save the enhanced image
                 cv2.imwrite(output_image_path, img)
@@ -80,7 +94,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Apply image enhancement techniques.")
     parser.add_argument("--input_folder", required=True, help="Path to the input folder containing images.")
     parser.add_argument("--output_folder", required=True, help="Path to the output folder for enhanced images.")
-    parser.add_argument("--styles", nargs='+', choices=['truncate_normalize', 'clahe', 'retinex'], default=['truncate_normalize'], help="Enhancement styles to apply.")
+    parser.add_argument("--styles", nargs='+', choices=['truncate_normalize', 'clahe', 'retinex', 'unsharp'], default=['truncate_normalize'], help="Enhancement styles to apply.")
 
     args = parser.parse_args()
 
