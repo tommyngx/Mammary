@@ -14,7 +14,7 @@ from tqdm import tqdm
 from PIL import Image
 import numpy as np
 
-def calculate_coverage(mask_path, threshold=0.1):
+def calculate_coverage(mask_path, threshold=0.01):
     with Image.open(mask_path) as img:
         mask_array = np.array(img)
 
@@ -27,7 +27,7 @@ def calculate_coverage(mask_path, threshold=0.1):
 
     return percentage_coverage < threshold
 
-def delete_low_coverage_masks(images_folder, masks_folder, threshold=0.1):
+def delete_low_coverage_masks(images_folder, masks_folder, threshold=0.01):
     image_files = os.listdir(images_folder)
     mask_files = os.listdir(masks_folder)
 
@@ -53,7 +53,7 @@ def main():
     parser = argparse.ArgumentParser(description='Delete masks with low coverage and corresponding images.')
     parser.add_argument('--images_folder', help='Path to the images folder', required=True)
     parser.add_argument('--masks_folder', help='Path to the masks folder', required=True)
-    parser.add_argument('--threshold', type=float, default=0.1, help='Coverage threshold (default: 0.1)')
+    parser.add_argument('--threshold', type=float, default=0.01, help='Coverage threshold (default: 0.1)')
 
     args = parser.parse_args()
 
