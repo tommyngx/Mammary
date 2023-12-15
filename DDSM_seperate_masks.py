@@ -2,7 +2,7 @@ import os
 import shutil
 
 def separate_masks(mask_folder, output_folder_prefix):
-    mask_files = os.listdir(input_folder)
+    mask_files = os.listdir(mask_folder)
 
     for mask_file in mask_files:
         # Extract mask name without extension
@@ -22,7 +22,7 @@ def separate_masks(mask_folder, output_folder_prefix):
 
         # Copy the mask to the appropriate output folder
         output_mask_path = os.path.join(output_folder, f"{mask_name}{ext}")
-        shutil.copy(os.path.join(input_folder, mask_file), output_mask_path)
+        shutil.copy(os.path.join(mask_folder, mask_file), output_mask_path)
 
 def main():
     import argparse
