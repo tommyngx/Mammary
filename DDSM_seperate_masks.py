@@ -28,7 +28,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Separate masks into different folders based on suffix.')
-    parser.add_argument('--input_folder', help='Path to the input masks folder', required=True)
+    parser.add_argument('--mask_folder', help='Path to the input masks folder', required=True)
     parser.add_argument('--output_folder_prefix', help='Prefix for the output folders', required=True)
 
     args = parser.parse_args()
