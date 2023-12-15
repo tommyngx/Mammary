@@ -37,7 +37,7 @@ def colorize_masks(mask_folder, output_folder):
                 colorized_mask[mask == value] = color
 
         # Save the colorized mask to the output folder
-        output_path = os.path.join(output_folder, f"colorized_{mask_file}")
+        output_path = os.path.join(output_folder, f"{mask_file}")
         cv2.imwrite(output_path, colorized_mask)
 
 if __name__ == "__main__":
