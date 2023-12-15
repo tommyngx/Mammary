@@ -58,7 +58,7 @@ def colorize_masks(images_folder, masks_folder, output_folder):
             colorized_mask[mask == unique_value] = color
 
         # Blend the colorized mask with the original image
-        blended_image = cv2.addWeighted(image, 0.7, colorized_mask, 0.9, 0)
+        blended_image = cv2.addWeighted(image, 0.5, colorized_mask, 0.5, 0)
 
         # Save the blended image to the output folder
         output_path = os.path.join(output_folder, f"{mask_file}")
