@@ -8,11 +8,11 @@ def copy_folder_and_csv(input_folder, csv_file, output_folder):
 
     # Copy folder X to Y
     input_folder_path = os.path.abspath(input_folder)
-    output_folder_path = os.path.join(output_folder, "Y")
+    output_folder_path = os.path.join(output_folder, "")
     shutil.copytree(input_folder_path, output_folder_path, copy_function=shutil.copy2)
 
     # Copy CSV file to Y
-    csv_file_path = os.path.join(output_folder, "Y", os.path.basename(csv_file))
+    csv_file_path = os.path.join(output_folder, "", os.path.basename(csv_file))
     shutil.copy(csv_file, csv_file_path)
 
 def main():
