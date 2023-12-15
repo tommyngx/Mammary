@@ -1,8 +1,8 @@
 import os
 import argparse
 import numpy as np
+import cv2
 from tqdm import tqdm
-from PIL import Image
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
@@ -16,10 +16,10 @@ def colorize_masks(mask_folder, output_folder):
         mask_path = os.path.join(mask_folder, mask_file)
 
         # Read mask image
-        mask = np.array(Image.open(mask_path))
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
-        # Get unique pixel values in the mask excluding background (0)
-        unique_values = np.unique(mask)[1:]
+        # Get unique pixel values in the mask
+        unique_values = np.unique(mask)
 
         # Create a color palette for visualization
         color_palette = plt.cm.get_cmap('tab10', len(unique_values))
@@ -27,14 +27,18 @@ def colorize_masks(mask_folder, output_folder):
         # Create a color map based on the unique values
         cmap = ListedColormap([color_palette(i) for i in range(len(unique_values))])
 
-        # Visualize the mask with color
-        plt.imshow(mask, cmap=cmap, vmin=unique_values.min(), vmax=unique_values.max())
-        plt.axis('off')
+        # Create an RGB image with the same size as the mask
+        colorized_mask = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
+
+        # Replace non-background pixels with color
+        for i, value in enumerate(unique_values):
+            if value != 0:  # Ignore the background
+                color = np.array(cmap(i)[:3]) * 255
+                colorized_mask[mask == value] = color
 
         # Save the colorized mask to the output folder
         output_path = os.path.join(output_folder, f"colorized_{mask_file}")
-        plt.savefig(output_path, bbox_inches='tight', pad_inches=0, transparent=True)
-        plt.close()
+        cv2.imwrite(output_path, colorized_mask)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Colorize masks in specified mask folder.')
