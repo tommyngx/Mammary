@@ -1,6 +1,4 @@
-Certainly! I've modified the code to merge masks for the same ID by selecting the highest value for each pixel in the same location in both masks. The merged mask now represents the maximum intensity at each pixel position.
 
-```python
 import os
 import cv2
 import pandas as pd
