@@ -20,7 +20,7 @@ def analyze_masks(mask_folder):
         for mask_file in mask_files:
             mask_path = os.path.join(mask_subfolder_path, mask_file)
             unique_pixels, coverage_percentage = analyze_mask(mask_path)
-
+            print(mask_file)
             # Update unique pixels
             all_unique_pixels.update(unique_pixels)
 
