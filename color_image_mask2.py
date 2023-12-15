@@ -16,7 +16,7 @@ def colorize_and_blend(mask_path, images_folder, output_folder):
     colorized_mask = cv2.applyColorMap(mask, cv2.COLORMAP_JET)
 
     # Blend the colorized mask with the original image
-    blended_image = cv2.addWeighted(image, 0.7, colorized_mask, 0.3, 0)
+    blended_image = cv2.addWeighted(image, 0.5, colorized_mask, 0.5, 0)
 
     # Save the blended image to the output folder
     output_path = os.path.join(output_folder, f"blended_{mask_file}")
