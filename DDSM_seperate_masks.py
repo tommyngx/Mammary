@@ -1,7 +1,7 @@
 import os
 import shutil
 
-def separate_masks(input_folder, output_folder_prefix):
+def separate_masks(mask_folder, output_folder_prefix):
     mask_files = os.listdir(input_folder)
 
     for mask_file in mask_files:
@@ -33,7 +33,7 @@ def main():
 
     args = parser.parse_args()
 
-    separate_masks(args.input_folder, args.output_folder_prefix)
+    separate_masks(args.mask_folder, args.output_folder_prefix)
 
 if __name__ == "__main__":
     main()
