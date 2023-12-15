@@ -5,31 +5,27 @@ from tqdm import tqdm
 from PIL import Image
 
 def analyze_masks(mask_folder):
-    # Get list of mask folders
-    mask_folders = [f for f in os.listdir(mask_folder) if os.path.isdir(os.path.join(mask_folder, f))]
-
     # Initialize variables
     all_unique_pixels = set()
     coverage_percentages = []
 
+    # Check all .png files in the specified mask folder
+    mask_files = [f for f in os.listdir(mask_folder) if f.endswith('.png')]
+
     # Use tqdm for progress tracking
-    for mask_subfolder in tqdm(mask_folders, desc="Analyzing masks", unit="mask"):
-        mask_subfolder_path = os.path.join(mask_folder, mask_subfolder)
-        mask_files = [f for f in os.listdir(mask_subfolder_path) if f.endswith('.png')]
+    for mask_file in tqdm(mask_files, desc="Analyzing masks", unit="mask"):
+        mask_path = os.path.join(mask_folder, mask_file)
+        unique_pixels, coverage_percentage = analyze_mask(mask_path)
 
-        for mask_file in mask_files:
-            mask_path = os.path.join(mask_subfolder_path, mask_file)
-            unique_pixels, coverage_percentage = analyze_mask(mask_path)
-            print(mask_file)
-            # Update unique pixels
-            all_unique_pixels.update(unique_pixels)
+        # Update unique pixels
+        all_unique_pixels.update(unique_pixels)
 
-            # Update coverage percentages
-            coverage_percentages.append(coverage_percentage)
+        # Update coverage percentages
+        coverage_percentages.append(coverage_percentage)
 
-            # Print mask name if coverage is 0
-            if coverage_percentage == 0:
-                print(f"Mask with coverage 0: {mask_path}")
+        # Print mask name if coverage is 0
+        if coverage_percentage == 0:
+            print(f"Mask with coverage 0: {mask_path}")
 
     # Convert set to array for easier analysis
     unique_pixels_array = np.array(list(all_unique_pixels))
