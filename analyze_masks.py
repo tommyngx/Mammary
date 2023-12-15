@@ -46,7 +46,7 @@ def analyze_mask(mask_path):
     # Calculate percentage of coverage
     total_pixels = mask.size
     unique_pixels_count = len(unique_pixels)
-    coverage_percentage = (unique_pixels_count / total_pixels) * 100
+    coverage_percentage = ((unique_pixels_count+1) / total_pixels) * 100
 
     return unique_pixels, coverage_percentage
 
