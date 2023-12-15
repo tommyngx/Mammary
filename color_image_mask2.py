@@ -10,7 +10,7 @@ def colorize_and_blend(mask_path, images_folder, output_folder):
 
     # Read the mask and image
     mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    image = cv2.imread(image_path)
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     # Create an RGB image with the same size as the mask
     colorized_mask = cv2.applyColorMap(mask, cv2.COLORMAP_JET)
