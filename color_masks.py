@@ -18,8 +18,8 @@ def colorize_masks(mask_folder, output_folder):
         # Read mask image
         mask = np.array(Image.open(mask_path))
 
-        # Get unique pixel values in the mask
-        unique_values = np.unique(mask)
+        # Get unique pixel values in the mask excluding background (0)
+        unique_values = np.unique(mask)[1:]
 
         # Create a color palette for visualization
         color_palette = plt.cm.get_cmap('tab10', len(unique_values))
