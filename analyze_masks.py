@@ -2,6 +2,7 @@ import os
 import argparse
 import numpy as np
 from tqdm import tqdm
+from PIL import Image
 
 def analyze_masks(mask_folder):
     # Get list of mask folders
@@ -26,13 +27,22 @@ def analyze_masks(mask_folder):
             # Update coverage percentages
             coverage_percentages.append(coverage_percentage)
 
+            # Print mask name if coverage is 0
+            if coverage_percentage == 0:
+                print(f"Mask with coverage 0: {mask_path}")
+
     # Convert set to array for easier analysis
     unique_pixels_array = np.array(list(all_unique_pixels))
 
-    # Calculate statistics
-    max_coverage = np.max(coverage_percentages)
-    min_coverage = np.min(coverage_percentages)
-    avg_coverage = np.mean(coverage_percentages)
+    # Check if the array is not empty
+    if coverage_percentages:
+        # Calculate statistics
+        max_coverage = np.max(coverage_percentages)
+        min_coverage = np.min(coverage_percentages)
+        avg_coverage = np.mean(coverage_percentages)
+    else:
+        # Handle case when array is empty
+        max_coverage = min_coverage = avg_coverage = 0
 
     return unique_pixels_array, max_coverage, min_coverage, avg_coverage
 
@@ -46,7 +56,7 @@ def analyze_mask(mask_path):
     # Calculate percentage of coverage
     total_pixels = mask.size
     unique_pixels_count = len(unique_pixels)
-    coverage_percentage = ((unique_pixels_count+1) / total_pixels) * 100
+    coverage_percentage = (unique_pixels_count / total_pixels) * 100
 
     return unique_pixels, coverage_percentage
 
