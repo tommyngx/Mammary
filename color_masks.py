@@ -12,27 +12,23 @@ def colorize_masks(mask_folder, output_folder):
     # Check all .png files in the specified mask folder
     mask_files = [f for f in os.listdir(mask_folder) if f.endswith('.png')]
 
-    # Define a color palette for visualization
-    color_palette = [
-        (0, 0, 0),    # Black for background (pixel value 0)
-        (255, 0, 0),  # Red for unique value 1
-        (0, 255, 0),  # Green for unique value 2
-        (0, 0, 255),  # Blue for unique value 3
-        (255, 255, 0),  # Yellow for unique value 4
-        (255, 0, 255),  # Magenta for unique value 5
-    ]
-
     for mask_file in tqdm(mask_files, desc="Colorizing masks", unit="mask"):
         mask_path = os.path.join(mask_folder, mask_file)
 
         # Read mask image
         mask = np.array(Image.open(mask_path))
 
-        # Create a color map based on the defined palette
-        cmap = ListedColormap(color_palette)
+        # Get unique pixel values in the mask
+        unique_values = np.unique(mask)
+
+        # Create a color palette for visualization
+        color_palette = plt.cm.get_cmap('tab10', len(unique_values))
+
+        # Create a color map based on the unique values
+        cmap = ListedColormap([color_palette(i) for i in range(len(unique_values))])
 
         # Visualize the mask with color
-        plt.imshow(mask, cmap=cmap, vmin=0, vmax=len(color_palette) - 1)
+        plt.imshow(mask, cmap=cmap, vmin=unique_values.min(), vmax=unique_values.max())
         plt.axis('off')
 
         # Save the colorized mask to the output folder
