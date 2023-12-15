@@ -10,24 +10,25 @@ def merge_crop_mask_data(input_folder, output_folder):
     os.makedirs(images_output_folder, exist_ok=True)
     os.makedirs(masks_output_folder, exist_ok=True)
 
-    for folder_name in os.listdir(input_folder):
-        if folder_name.startswith("crop_mask_") and os.path.isdir(os.path.join(input_folder, folder_name)):
-            images_folder = os.path.join(input_folder, folder_name, "images")
-            masks_folder = os.path.join(input_folder, folder_name, "masks")
+    crop_mask_folders = [folder_name for folder_name in os.listdir(input_folder) if folder_name.startswith("crop_mask_") and os.path.isdir(os.path.join(input_folder, folder_name))]
 
-            # Copy images to the output images folder
-            for image_file in os.listdir(images_folder):
-                image_path = os.path.join(images_folder, image_file)
-                new_image_path = os.path.join(images_output_folder, image_file)
-                shutil.copy(image_path, new_image_path)
+    for folder_name in tqdm(crop_mask_folders, desc="Merging data", unit="folder"):
+        images_folder = os.path.join(input_folder, folder_name, "images")
+        masks_folder = os.path.join(input_folder, folder_name, "masks")
 
-            # Copy masks to the output masks folder with added suffix
-            for mask_file in os.listdir(masks_folder):
-                mask_suffix = folder_name.rsplit("_", 1)[-1]
-                new_mask_name = f"{os.path.splitext(mask_file)[0]}_{mask_suffix}.png"
-                mask_path = os.path.join(masks_folder, mask_file)
-                new_mask_path = os.path.join(masks_output_folder, new_mask_name)
-                shutil.copy(mask_path, new_mask_path)
+        # Copy images to the output images folder
+        for image_file in os.listdir(images_folder):
+            image_path = os.path.join(images_folder, image_file)
+            new_image_path = os.path.join(images_output_folder, image_file)
+            shutil.copy(image_path, new_image_path)
+
+        # Copy masks to the output masks folder with added suffix
+        for mask_file in os.listdir(masks_folder):
+            mask_suffix = folder_name.rsplit("_", 1)[-1]
+            new_mask_name = f"{os.path.splitext(mask_file)[0]}_{mask_suffix}.png"
+            mask_path = os.path.join(masks_folder, mask_file)
+            new_mask_path = os.path.join(masks_output_folder, new_mask_name)
+            shutil.copy(mask_path, new_mask_path)
 
 def main():
     import argparse
