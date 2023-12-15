@@ -1,51 +1,39 @@
-
-# Update 30 Nov 2023
-# Tommy bugs
-# Miscellaneous utilities.
-#
 import os
-from tqdm import tqdm
-from shutil import copyfile
+import shutil
 
-def separate_masks(mask_folder, output_folder):
-    os.makedirs(output_folder, exist_ok=True)
+def separate_masks(input_folder, output_folder_prefix):
+    mask_files = os.listdir(input_folder)
 
-    mask_files = os.listdir(mask_folder)
+    for mask_file in mask_files:
+        # Extract mask name without extension
+        mask_name, ext = os.path.splitext(mask_file)
 
-    for mask_file in tqdm(mask_files, desc="Separating masks"):
-        mask_path = os.path.join(mask_folder, mask_file)
+        # Split the mask name by '_'
+        mask_name_parts = mask_name.split('_')
 
-        # Split the mask name by "_"
-        mask_name_parts = mask_file.split("_")
+        # Extract the suffix (e.g., '1', '2', '3', '4') from the last part of the name
+        suffix = mask_name_parts[-1]
 
-        if len(mask_name_parts) > 1:
-            # Extract the last part after splitting by "_"
-            suffix = mask_name_parts[-1]
+        # Create output folder based on the suffix
+        output_folder = f"{output_folder_prefix}_{suffix}"
 
-            # Remove any numeric suffix like "_1", "_2"
-            suffix = "".join(filter(str.isalpha, suffix))
+        # Create the output folder if it doesn't exist
+        os.makedirs(output_folder, exist_ok=True)
 
-            # Create a folder for each suffix and copy the mask
-            output_subfolder = os.path.join(output_folder, suffix)
-            os.makedirs(output_subfolder, exist_ok=True)
-
-            # Construct the new mask name without numeric suffix
-            new_mask_name = "_".join(mask_name_parts[:-1]) + ".png"
-            new_mask_path = os.path.join(output_subfolder, new_mask_name)
-
-            # Copy the mask to the corresponding folder
-            copyfile(mask_path, new_mask_path)
+        # Copy the mask to the appropriate output folder
+        output_mask_path = os.path.join(output_folder, f"{mask_name}{ext}")
+        shutil.copy(os.path.join(input_folder, mask_file), output_mask_path)
 
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Separate masks into folders based on suffixes.')
-    parser.add_argument('--mask_folder', help='Path to the mask folder', required=True)
-    parser.add_argument('--output_folder', help='Path to the output folder', required=True)
+    parser = argparse.ArgumentParser(description='Separate masks into different folders based on suffix.')
+    parser.add_argument('--input_folder', help='Path to the input masks folder', required=True)
+    parser.add_argument('--output_folder_prefix', help='Prefix for the output folders', required=True)
 
     args = parser.parse_args()
 
-    separate_masks(args.mask_folder, args.output_folder)
+    separate_masks(args.input_folder, args.output_folder_prefix)
 
 if __name__ == "__main__":
     main()
