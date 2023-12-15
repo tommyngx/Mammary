@@ -22,7 +22,7 @@ def colorize_and_blend(mask_path, images_folder, output_folder):
     blended_image = cv2.addWeighted(image, 0.5, colorized_mask, 0.5, 0)
 
     # Save the blended image to the output folder
-    output_path = os.path.join(output_folder, f"blended_{mask_file}")
+    output_path = os.path.join(output_folder, f"{mask_file}")
     cv2.imwrite(output_path, blended_image)
 
 def colorize_and_blend_all(images_folder, masks_folder, output_folder):
