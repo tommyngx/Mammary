@@ -23,7 +23,7 @@ def calculate_coverage(mask_path, threshold=0.01):
 
     total_pixels = mask_array.size
     white_pixels = np.count_nonzero(mask_array)
-    percentage_coverage = (white_pixels / total_pixels) * 100
+    percentage_coverage = (white_pixels / total_pixels) * 1
 
     return percentage_coverage < threshold
 
