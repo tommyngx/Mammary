@@ -9,7 +9,26 @@ import cv2
 import argparse
 from tqdm import tqdm
 
-def resize_images(input_folder, save_folder, size):
+
+def resize_images(images, size):
+    # Get original image dimensions
+    height, width = image.shape[:2]
+
+    # Calculate aspect ratio
+    aspect_ratio = width / height
+
+    # Calculate new dimensions based on specified width
+    new_width = size
+    new_height = int(new_width / aspect_ratio)
+
+    # Resize image while keeping aspect ratio
+    resized_image = cv2.resize(image, (new_width, new_height))
+    return resized_image
+
+
+
+
+def slideprocess(input_folder, save_folder, size, overlap):
     """Function to resize images while keeping the aspect ratio"""
 
     # Create save folder if it doesn't exist
@@ -25,22 +44,39 @@ def resize_images(input_folder, save_folder, size):
             print(f"Failed to read image: {image_path}")
             continue
 
-        # Get original image dimensions
-        height, width = image.shape[:2]
+        img_res = resize_images(image, size)
 
-        # Calculate aspect ratio
-        aspect_ratio = width / height
+        # Original image dimensions
+        image_height = img_res.shape[0]
+        image_width = img_res.shape[1]
 
-        # Calculate new dimensions based on specified width
-        new_width = size
-        new_height = int(new_width / aspect_ratio)
+        # Calculate overlap pixels
+        overlap_pixels = int(image_height * overlap)
 
-        # Resize image while keeping aspect ratio
-        resized_image = cv2.resize(image, (new_width, new_height))
+        # Calculate the number of splits
+        num_splits = (image_height - size) // (size - overlap_pixels) + 1
+
+        # Iterate over the splits
+        for i in range(num_splits):
+            # Calculate the starting and ending positions for each split
+            start_y = i * (size - overlap_pixels)
+            end_y = min(start_y + size, image_height)
+
+            # Extract the split as a small image
+            small_image = original_image[start_y:end_y, :]
+
+            # Resize the small image
+            small_image = cv2.resize(small_image, (size, size))
+
+            # Save the small_image
+            save_image_path = os.path.join(save_folder, f"{image_name[:-4]}_{i}.png")
+            cv2.imwrite(save_image_path, small_image)
+
+
 
         # Save resized image
-        save_path = os.path.join(save_folder, image_name)
-        cv2.imwrite(save_path, resized_image)
+        #save_path = os.path.join(save_folder, image_name)
+        #cv2.imwrite(save_path, resized_image)
 
 
 
@@ -48,8 +84,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Resize images while keeping aspect ratio')
     parser.add_argument('--input_folder', required=True, help='Input folder containing images')
     parser.add_argument('--save_folder', required=True, help='Folder to save resized images')
-    parser.add_argument('--size', type=int, default=640, help='Width of the resized images')
+    parser.add_argument('--overlap', type=float, default=0.3, help='Overlap ratio (default: 0.3)')
+    parser.add_argument('--size', type=int, default=640, help='Size of each window (default: 640)')
+
     args = parser.parse_args()
 
-    resize_images(args.input_folder, args.save_folder, args.size)
-
+    slideprocess(args.input_folder, args.save_folder, args.size)
