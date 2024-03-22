@@ -62,6 +62,11 @@ def slideprocess(input_folder, save_folder, size, overlap):
             start_y = i * (size - overlap_pixels)
             end_y = min(start_y + size, image_height)
 
+            last_y = start_y + size
+            if last_y > image_height:
+                end_y = image_height
+                start_y = image_height - size
+
             # Extract the split as a small image
             small_image = img_res[start_y:end_y, :]
 
