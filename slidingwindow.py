@@ -89,4 +89,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    slideprocess(args.input_folder, args.save_folder, args.size)
+    slideprocess(args.input_folder, args.save_folder, args.size, args.overlap)
