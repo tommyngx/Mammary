@@ -63,7 +63,6 @@ def slideprocess(input_folder, save_folder, size, overlap):
 
         # Iterate over the splits
         for i in range(num_splits):
-            i=i+1;
             # Calculate the starting and ending positions for each split
             start_y = i * (size - overlap_pixels)
             end_y = min(start_y + size, image_height)
@@ -79,7 +78,8 @@ def slideprocess(input_folder, save_folder, size, overlap):
             # Resize the small image
             #small_image = cv2.resize(small_image, (size, size))
 
-            # Save the small_image
+            # Save the 
+            i = i+1;
             save_image_path = os.path.join(save_folder, f"{image_name[:-4]}_{i}.png")
             cv2.imwrite(save_image_path, small_image)
 
