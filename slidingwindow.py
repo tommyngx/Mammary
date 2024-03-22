@@ -51,7 +51,7 @@ def slideprocess(input_folder, save_folder, size, overlap):
         image_width = img_res.shape[1]
 
         # Calculate overlap pixels
-        overlap_pixels = int(image_width * overlap)
+        overlap_pixels = int(size * overlap)
 
         # Calculate the number of splits
         num_splits = (image_height - overlap_pixels) // (size - overlap_pixels) #+ 1
