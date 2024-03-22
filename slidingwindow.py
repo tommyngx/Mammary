@@ -33,7 +33,7 @@ def pad_image_to_height(image, target_height):
     # Calculate the amount of padding needed
     pad_height = target_height - current_height
     #top_pad = pad_height // 2
-    bottom_pad = pad_height - top_pad
+    bottom_pad = pad_height #- top_pad
 
     # Pad the image
     padded_image = cv2.copyMakeBorder(image, 0, bottom_pad, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
