@@ -63,10 +63,10 @@ def slideprocess(input_folder, save_folder, size, overlap):
             end_y = min(start_y + size, image_height)
 
             # Extract the split as a small image
-            small_image = original_image[start_y:end_y, :]
+            small_image = img_res[start_y:end_y, :]
 
             # Resize the small image
-            small_image = cv2.resize(small_image, (size, size))
+            #small_image = cv2.resize(small_image, (size, size))
 
             # Save the small_image
             save_image_path = os.path.join(save_folder, f"{image_name[:-4]}_{i}.png")
