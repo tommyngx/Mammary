@@ -10,7 +10,7 @@ import argparse
 from tqdm import tqdm
 
 
-def resize_images(images, size):
+def resize_images(image, size):
     # Get original image dimensions
     height, width = image.shape[:2]
 
