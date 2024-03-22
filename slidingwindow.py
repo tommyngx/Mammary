@@ -25,7 +25,20 @@ def resize_images(image, size):
     resized_image = cv2.resize(image, (new_width, new_height))
     return resized_image
 
+def pad_image_to_height(image, target_height):
+    current_height, width = image.shape[:2]
+    if current_height >= target_height:
+        return image
 
+    # Calculate the amount of padding needed
+    pad_height = target_height - current_height
+    top_pad = pad_height // 2
+    bottom_pad = pad_height - top_pad
+
+    # Pad the image
+    padded_image = cv2.copyMakeBorder(image, top_pad, bottom_pad, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+
+    return padded_image
 
 
 def slideprocess(input_folder, save_folder, size, overlap):
@@ -70,10 +83,15 @@ def slideprocess(input_folder, save_folder, size, overlap):
             last_y = start_y + size
             if last_y > image_height:
                 end_y = image_height
-                start_y = image_height - size
+                #start_y = image_height - size
+                #start_y = start_y #+ size - image_height
 
             # Extract the split as a small image
             small_image = img_res[start_y:end_y, :]
+
+
+            if last_y > image_height:
+                small_image = pad_image_to_height(small_image, size)
 
             # Resize the small image
             #small_image = cv2.resize(small_image, (size, size))
