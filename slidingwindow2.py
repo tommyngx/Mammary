@@ -44,6 +44,8 @@ def slide_location(image, center_y, slide_height):
         center_y = slide_height // 2
     elif max_bottom == original_image.shape[0]:
         center_y = original_image.shape[0] - slide_height // 2
+    elif max_bottom == 0:
+        center_y = slide_height // 2
 
     return center_y
 
