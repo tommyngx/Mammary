@@ -127,8 +127,8 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
     upper_slide_window= pad_top_to_height(upper_slide_window, size)
     upper_mask_window= pad_top_to_height(upper_mask_window, size)
-    #lower_slide_window =pad_bottom_to_height(lower_slide_window, size)
-    #lower_mask_window =pad_bottom_to_height(lower_mask_window, size)
+    lower_slide_window =pad_bottom_to_height(lower_slide_window, size)
+    lower_mask_window =pad_bottom_to_height(lower_mask_window, size)
 
     # Save adjusted slide windows and masks if they are not empty
     if upper_slide_window.shape[0] > 0:
