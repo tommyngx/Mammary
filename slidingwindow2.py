@@ -89,12 +89,20 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     mask_window = original_mask[center_y - slide_height // 2: center_y + slide_height // 2, :]
     cv2.imwrite(save_mask_path, mask_window)
 
+    start = center_y - slide_height // 2
+    end   = center_y + slide_height // 2
     # Save additional slide windows and masks
     adjusted_slide_height = int(height * 0.3)
-    upper_slide_window = original_image[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
-    lower_slide_window = original_image[center_y + slide_height // 2 + adjusted_slide_height: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
-    upper_mask_window  = original_mask[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
-    lower_mask_window  = original_mask[center_y + slide_height // 2 + adjusted_slide_height : min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
+    #upper_slide_window = original_image[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
+    #lower_slide_window = original_image[center_y + slide_height // 2 + adjusted_slide_height: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
+    #upper_mask_window  = original_mask[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
+    #lower_mask_window  = original_mask[center_y + slide_height // 2 + adjusted_slide_height : min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
+
+    upper_slide_window = original_image[max(start - adjusted_slide_height, 0): end - adjusted_slide_height, :]
+    lower_slide_window = original_image[end + adjusted_slide_height: min(start + adjusted_slide_height, size), :]
+    upper_mask_window  = original_mask[max(start - adjusted_slide_height, 0): end - adjusted_slide_height, :]
+    lower_mask_window  = original_mask[end + adjusted_slide_height : min(start + adjusted_slide_height, size), :]
+
 
     # Save adjusted slide windows and masks if they are not empty
     if upper_slide_window.shape[0] > 0:
