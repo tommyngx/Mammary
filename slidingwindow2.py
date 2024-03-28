@@ -92,7 +92,8 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     start = center_y - slide_height // 2
     end   = center_y + slide_height // 2
     # Save additional slide windows and masks
-    adjusted_slide_height = int(height * 0.3)
+    #adjusted_slide_height = int(height * 0.3)
+    adjusted_slide_height = int(size * 0.3)
     #upper_slide_window = original_image[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
     #lower_slide_window = original_image[center_y + slide_height // 2 + adjusted_slide_height: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
     #upper_mask_window  = original_mask[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
