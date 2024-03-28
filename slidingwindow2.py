@@ -84,8 +84,8 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
     # Resize the slide window
     #resized_slide_window = resize_image(slide_window, size)
-    if resized_slide_window is None:
-        return
+    #if resized_slide_window is None:
+    #    return
 
     # Save the resized slide window
     base_name = os.path.splitext(os.path.basename(image_path))[0]
