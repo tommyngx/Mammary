@@ -49,12 +49,7 @@ def slide_location(image_path, center_y, slide_height):
 
     return center_y
 
-def resize_image(image_path, size):
-    # Read the image
-    image = cv2.imread(image_path)
-    if image is None:
-        print("Failed to read the image.")
-        return None
+def resize_image(image, size):
 
     # Resize the image while maintaining the aspect ratio
     height, width = image.shape[:2]
