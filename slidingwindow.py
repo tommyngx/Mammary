@@ -104,12 +104,13 @@ def process_images(input_folder, save_folder, size):
 
     # Iterate over the images in the input folder
     input_image_folder = os.path.join(input_folder, 'images')
-    input_mask_folder = os.path.join(input_folder, 'masks')
+    input_mask_folder  = os.path.join(input_folder, 'masks')
 
     for filename in tqdm(os.listdir(input_image_folder), desc="Processing images"):
         if filename.endswith('.jpg') or filename.endswith('.png'):
             image_path = os.path.join(input_image_folder, filename)
             mask_path = os.path.join(input_mask_folder, filename)
+            print(image_path)
             if not os.path.exists(mask_path):
                 print(f"Mask not found for {filename}. Skipping...")
                 continue
