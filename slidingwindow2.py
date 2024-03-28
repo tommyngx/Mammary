@@ -49,16 +49,22 @@ def slide_location(image_path, center_y, slide_height):
 
     return center_y
 
-def resize_image(image, size):
 
-    # Resize the image while maintaining the aspect ratio
+def resize_images(image, size):
+    # Get original image dimensions
     height, width = image.shape[:2]
-    aspect_ratio = width / height
-    new_height = size
-    new_width = int(new_height * aspect_ratio)
-    resized_image = cv2.resize(image, (new_width, new_height))
 
+    # Calculate aspect ratio
+    aspect_ratio = width / height
+
+    # Calculate new dimensions based on specified width
+    new_width = size
+    new_height = int(new_width / aspect_ratio)
+
+    # Resize image while keeping aspect ratio
+    resized_image = cv2.resize(image, (new_width, new_height))
     return resized_image
+
 
 def crop_slide_window(image_path, mask_path, save_folder, size):
     # Find the center of the mask
@@ -73,20 +79,21 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
     # Crop the slide window around the center
     original_image = cv2.imread(image_path)
+    original_image  = resize_images(original_image  size)
     slide_window = original_image[center_y - slide_height // 2: center_y + slide_height // 2, :]
 
     # Resize the slide window
-    resized_slide_window = resize_image(slide_window, size)
+    #resized_slide_window = resize_image(slide_window, size)
     if resized_slide_window is None:
         return
 
     # Save the resized slide window
     base_name = os.path.splitext(os.path.basename(image_path))[0]
-    save_path = os.path.join(save_folder, f"images/{base_name}_slide.jpg")
+    save_path = os.path.join(save_folder, f"images/{base_name}.png")
     cv2.imwrite(save_path, resized_slide_window)
 
     # Save the mask
-    mask_name = f"{base_name}_mask.jpg"
+    mask_name = f"{base_name}.png"
     save_mask_path = os.path.join(save_folder, f"masks/{mask_name}")
     shutil.copy(mask_path, save_mask_path)
 
