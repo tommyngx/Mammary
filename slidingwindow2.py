@@ -1,8 +1,8 @@
 import os
 import cv2
+import numpy as np
 import argparse
 from tqdm import tqdm
-import shutil
 
 def find_center(mask_path):
     # Read the mask image
@@ -87,15 +87,29 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
     # Save the resized slide window
     base_name = os.path.splitext(os.path.basename(image_path))[0]
-    save_path = os.path.join(save_folder, f"{base_name}_slide.jpg")
+    save_path = os.path.join(save_folder, f"images/{base_name}_slide.jpg")
     cv2.imwrite(save_path, resized_slide_window)
 
+    # Save the mask
+    mask_name = f"{base_name}_mask.jpg"
+    save_mask_path = os.path.join(save_folder, f"masks/{mask_name}")
+    shutil.copy(mask_path, save_mask_path)
+
 def process_images(input_folder, save_folder, size):
+    # Create the save folder if it doesn't exist
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)
+        os.makedirs(os.path.join(save_folder, 'images'))
+        os.makedirs(os.path.join(save_folder, 'masks'))
+
     # Iterate over the images in the input folder
-    for filename in os.listdir(input_folder):
+    input_image_folder = os.path.join(input_folder, 'images')
+    input_mask_folder = os.path.join(input_folder, 'masks')
+
+    for filename in tqdm(os.listdir(input_image_folder), desc="Processing images"):
         if filename.endswith('.jpg') or filename.endswith('.png'):
-            image_path = os.path.join(input_folder, filename)
-            mask_path = os.path.join(input_folder, f"{os.path.splitext(filename)[0]}.png")
+            image_path = os.path.join(input_image_folder, filename)
+            mask_path = os.path.join(input_mask_folder, filename)
             if not os.path.exists(mask_path):
                 print(f"Mask not found for {filename}. Skipping...")
                 continue
@@ -103,10 +117,9 @@ def process_images(input_folder, save_folder, size):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Crop slide windows around mask centers and resize them.')
-    parser.add_argument('--input_folder', required=True, help='Input folder containing images')
+    parser.add_argument('--input_folder', required=True, help='Input folder containing images and masks')
     parser.add_argument('--save_folder', required=True, help='Folder to save cropped and resized slide windows')
     parser.add_argument('--size', type=int, default=448, help='Height of the resized slide windows (default: 448)')
     args = parser.parse_args()
 
     process_images(args.input_folder, args.save_folder, args.size)
-
