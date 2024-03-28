@@ -93,6 +93,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     save_mask_path = os.path.join(save_folder, f"masks/{mask_name}")
     #shutil.copy(mask_path, save_mask_path)
     mask_window = original_mask[center_y - slide_height // 2: center_y + slide_height // 2, :]
+    print(" image ", basename)
     cv2.imwrite(save_mask_path, mask_window)
 
 def process_images(input_folder, save_folder, size):
