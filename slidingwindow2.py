@@ -79,7 +79,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
     # Crop the slide window around the center
     original_image = cv2.imread(image_path)
-    original_image  = resize_images(original_image  size)
+    original_image  = resize_images(original_image , size)
     slide_window = original_image[center_y - slide_height // 2: center_y + slide_height // 2, :]
 
     # Resize the slide window
