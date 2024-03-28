@@ -31,12 +31,9 @@ def find_center(original_mask):
 
     return center_x, center_y
 
-def slide_location(image_path, center_y, slide_height):
+def slide_location(image, center_y, slide_height):
     # Read the original image
-    original_image = cv2.imread(image_path)
-    if original_image is None:
-        print("Failed to read the original image.")
-        return None
+    original_image = image
 
     # Calculate the top and bottom limits for cropping
     max_top = min(center_y - slide_height // 2, 0)
