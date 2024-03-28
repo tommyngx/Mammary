@@ -4,9 +4,10 @@ import numpy as np
 import argparse
 from tqdm import tqdm
 
-def find_center(mask_path):
+def find_center(original_mask):
     # Read the mask image
-    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    #mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    mask =original_mask
     if mask is None:
         print("Failed to read the mask image.")
         return None
@@ -67,8 +68,10 @@ def resize_images(image, size):
 
 
 def crop_slide_window(image_path, mask_path, save_folder, size):
+    original_mask = cv2.imread(mask_path)
+    original_mask = resize_images(original_mask , size)
     # Find the center of the mask
-    center = find_center(mask_path)
+    center = find_center(original_mask)
     if center is None:
         return
 
@@ -82,10 +85,6 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     original_image  = resize_images(original_image , size)
     slide_window = original_image[center_y - slide_height // 2: center_y + slide_height // 2, :]
 
-    # Resize the slide window
-    #resized_slide_window = resize_image(slide_window, size)
-    #if resized_slide_window is None:
-    #    return
 
     # Save the resized slide window
     base_name = os.path.splitext(os.path.basename(image_path))[0]
