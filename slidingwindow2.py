@@ -99,6 +99,8 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
 def process_images(input_folder, save_folder, size):
     # Create the save folder if it doesn't exist
+    if os.path.exists(save_folder):
+        shutil.rmtree(save_folder)
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
         os.makedirs(os.path.join(save_folder, 'images'))
