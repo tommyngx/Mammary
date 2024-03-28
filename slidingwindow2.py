@@ -44,6 +44,23 @@ def slide_location(image, center_y, slide_height):
 
     return center_y
 
+def pad_bottom_to_height(image, target_height):
+    current_height, width = image.shape[:2]
+    if current_height >= target_height:
+        return image
+    pad_height = target_height - current_height
+    bottom_pad = pad_height #- top_pad
+    padded_image = cv2.copyMakeBorder(image, 0, bottom_pad, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+    return padded_image
+
+def pad_top_to_height(image, target_height):
+    current_height, width = image.shape[:2]
+    if current_height >= target_height:
+        return image
+    pad_height = target_height - current_height
+    top_pad = pad_height
+    padded_image = cv2.copyMakeBorder(image, top_pad, 0, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+    return padded_image
 
 def resize_images(image, size):
     # Get original image dimensions
@@ -100,10 +117,16 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     #lower_mask_window  = original_mask[center_y + slide_height // 2 + adjusted_slide_height : min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
 
     upper_slide_window = original_image[max(start - adjusted_slide_height, 0): end - adjusted_slide_height, :]
-    lower_slide_window = original_image[end + adjusted_slide_height: min(start + adjusted_slide_height, size), :]
-    upper_mask_window  = original_mask[max(start - adjusted_slide_height, 0): end - adjusted_slide_height, :]
-    lower_mask_window  = original_mask[end + adjusted_slide_height : min(start + adjusted_slide_height, size), :]
+    lower_slide_window = original_image[start + adjusted_slide_height: min(end + adjusted_slide_height, size), :]
 
+    upper_mask_window  = original_mask[max(start - adjusted_slide_height, 0): end - adjusted_slide_height, :]
+    lower_mask_window  = original_mask[start + adjusted_slide_height : min(end + adjusted_slide_height, size), :]
+
+
+    upper_slide_window= pad_top_to_height(upper_slide_window, size)
+    upper_mask_window= pad_top_to_height(upper_mask_window, size)
+    lower_slide_window =pad_bottom_to_height(lower_slide_window, size)
+    lower_mask_window =pad_bottom_to_height(lower_mask_window, size)
 
     # Save adjusted slide windows and masks if they are not empty
     if upper_slide_window.shape[0] > 0:
@@ -112,7 +135,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
         cv2.imwrite(upper_save_image_path, upper_slide_window)
         cv2.imwrite(upper_save_mask_path, upper_mask_window)
 
-    if lower_slide_window.shape[0] > 0:
+    if lower_slide_window.shape[0] < size +1 :
         lower_save_image_path = os.path.join(save_folder, f"images/{base_name}_lower.png")
         lower_save_mask_path = os.path.join(save_folder, f"masks/{base_name}_lower.png")
         cv2.imwrite(lower_save_image_path, lower_slide_window)
