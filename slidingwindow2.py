@@ -65,7 +65,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     original_mask = cv2.imread(mask_path)
     original_mask = resize_images(original_mask , size)
     # Find the center of the mask
-    center_x, center_y, mask_height = find_center(original_mask)
+    center_x, center_y, height = find_center(original_mask)
 
     slide_height = size
     center_y = slide_location(original_mask, center_y, slide_height)
@@ -90,22 +90,25 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     cv2.imwrite(save_mask_path, mask_window)
 
     # Save additional slide windows and masks
-    adjusted_slide_height = int(mask_height * 0.3)
-    upper_slide_window = original_image[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2, :]
-    lower_slide_window = original_image[center_y + slide_height // 2: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
-    upper_mask_window = original_mask[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2, :]
-    lower_mask_window = original_mask[center_y + slide_height // 2: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
+    adjusted_slide_height = int(height * 0.3)
+    upper_slide_window = original_image[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
+    lower_slide_window = original_image[center_y + slide_height // 2 + adjusted_slide_height: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
+    upper_mask_window  = original_mask[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2 - adjusted_slide_height, :]
+    lower_mask_window  = original_mask[center_y + slide_height // 2 + adjusted_slide_height : min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
 
     # Save adjusted slide windows and masks if they are not empty
-    if upper_slide_window.shape[0] > 0 and lower_slide_window.shape[0] > 0:
+    if upper_slide_window.shape[0] > 0:
         upper_save_image_path = os.path.join(save_folder, f"images/{base_name}_upper.png")
-        lower_save_image_path = os.path.join(save_folder, f"images/{base_name}_lower.png")
         upper_save_mask_path = os.path.join(save_folder, f"masks/{base_name}_upper.png")
-        lower_save_mask_path = os.path.join(save_folder, f"masks/{base_name}_lower.png")
         cv2.imwrite(upper_save_image_path, upper_slide_window)
-        cv2.imwrite(lower_save_image_path, lower_slide_window)
         cv2.imwrite(upper_save_mask_path, upper_mask_window)
+
+    if lower_slide_window.shape[0] > 0:
+        lower_save_image_path = os.path.join(save_folder, f"images/{base_name}_lower.png")
+        lower_save_mask_path = os.path.join(save_folder, f"masks/{base_name}_lower.png")
+        cv2.imwrite(lower_save_image_path, lower_slide_window)
         cv2.imwrite(lower_save_mask_path, lower_mask_window)
+
 
 def process_images(input_folder, save_folder, size):
     # Create the save folder if it doesn't exist
