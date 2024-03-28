@@ -65,7 +65,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     original_mask = cv2.imread(mask_path)
     original_mask = resize_images(original_mask , size)
     # Find the center of the mask
-    center_x, center_y, slide_height = find_center(original_mask)
+    center_x, center_y, mask_height = find_center(original_mask)
 
     slide_height = size
     center_y = slide_location(original_mask, center_y, slide_height)
@@ -90,7 +90,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     cv2.imwrite(save_mask_path, mask_window)
 
     # Save additional slide windows and masks
-    adjusted_slide_height = int(slide_height * 0.3)
+    adjusted_slide_height = int(mask_height * 0.3)
     upper_slide_window = original_image[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2, :]
     lower_slide_window = original_image[center_y + slide_height // 2: min(center_y + slide_height // 2 + adjusted_slide_height, size), :]
     upper_mask_window = original_mask[max(center_y - slide_height // 2 - adjusted_slide_height, 0): center_y - slide_height // 2, :]
