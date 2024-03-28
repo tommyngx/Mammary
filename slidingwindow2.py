@@ -4,118 +4,109 @@ import argparse
 from tqdm import tqdm
 import shutil
 
-import os
-import cv2
-import argparse
-from tqdm import tqdm
+def find_center(mask_path):
+    # Read the mask image
+    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        print("Failed to read the mask image.")
+        return None
 
+    # Find contours in the mask
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-def resize_images(image, size):
-    # Get original image dimensions
+    if not contours:
+        print("No mask found in the image.")
+        return None
+
+    # Get the largest contour (assuming it's the main mask)
+    main_contour = max(contours, key=cv2.contourArea)
+
+    # Calculate the bounding box around the main contour
+    x, y, w, h = cv2.boundingRect(main_contour)
+
+    # Calculate the center of the bounding box
+    center_x = x + w // 2
+    center_y = y + h // 2
+
+    return center_x, center_y
+
+def slide_location(image_path, center_y, slide_height):
+    # Read the original image
+    original_image = cv2.imread(image_path)
+    if original_image is None:
+        print("Failed to read the original image.")
+        return None
+
+    # Calculate the top and bottom limits for cropping
+    max_top = min(center_y - slide_height // 2, 0)
+    max_bottom = max(center_y + slide_height // 2, original_image.shape[0])
+
+    # Adjust center_y if it's too close to the top or bottom
+    if max_top == 0:
+        center_y = slide_height // 2
+    elif max_bottom == original_image.shape[0]:
+        center_y = original_image.shape[0] - slide_height // 2
+
+    return center_y
+
+def resize_image(image_path, size):
+    # Read the image
+    image = cv2.imread(image_path)
+    if image is None:
+        print("Failed to read the image.")
+        return None
+
+    # Resize the image while maintaining the aspect ratio
     height, width = image.shape[:2]
-
-    # Calculate aspect ratio
     aspect_ratio = width / height
-
-    # Calculate new dimensions based on specified width
-    new_width = size
-    new_height = int(new_width / aspect_ratio)
-
-    # Resize image while keeping aspect ratio
+    new_height = size
+    new_width = int(new_height * aspect_ratio)
     resized_image = cv2.resize(image, (new_width, new_height))
+
     return resized_image
 
-def pad_image_to_height(image, target_height):
-    current_height, width = image.shape[:2]
-    if current_height >= target_height:
-        return image
+def crop_slide_window(image_path, mask_path, save_folder, size):
+    # Find the center of the mask
+    center = find_center(mask_path)
+    if center is None:
+        return
 
-    # Calculate the amount of padding needed
-    pad_height = target_height - current_height
-    #top_pad = pad_height // 2
-    bottom_pad = pad_height #- top_pad
+    # Determine the slide location
+    center_x, center_y = center
+    slide_height = size
+    center_y = slide_location(image_path, center_y, slide_height)
 
-    # Pad the image
-    padded_image = cv2.copyMakeBorder(image, 0, bottom_pad, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+    # Crop the slide window around the center
+    original_image = cv2.imread(image_path)
+    slide_window = original_image[center_y - slide_height // 2: center_y + slide_height // 2, :]
 
-    return padded_image
+    # Resize the slide window
+    resized_slide_window = resize_image(slide_window, size)
+    if resized_slide_window is None:
+        return
 
+    # Save the resized slide window
+    base_name = os.path.splitext(os.path.basename(image_path))[0]
+    save_path = os.path.join(save_folder, f"{base_name}_slide.jpg")
+    cv2.imwrite(save_path, resized_slide_window)
 
-def slideprocess(input_folder, save_folder, size, overlap):
-    """Function to resize images while keeping the aspect ratio"""
-
-    # Create save folder if it doesn't exist
-    if not os.path.exists(save_folder):
-        os.makedirs(save_folder)
-
-    # Iterate over the files in the input folder
-    for image_name in tqdm(os.listdir(input_folder), desc="Resizing images"):
-        image_path = os.path.join(input_folder, image_name)
-        # Read image
-        image = cv2.imread(image_path)
-        if image is None:
-            print(f"Failed to read image: {image_path}")
-            continue
-
-        img_res = resize_images(image, size)
-
-        # Original image dimensions
-        image_height = img_res.shape[0]
-        image_width = img_res.shape[1]
-
-        # Calculate overlap pixels
-        overlap_pixels = int(size * overlap)
-
-        # Calculate the number of splits
-        num_splits = (image_height - overlap_pixels) // (size - overlap_pixels) #+ 1
-        #print("code:",num_splits, "--",overlap_pixels,"--", image_height, "xx", image_width )
-        remain  =  (image_height - overlap_pixels) % (size - overlap_pixels)
-        if remain >0.30: num_splits= num_splits+1
-
-        #print("code:",num_splits, "--",overlap_pixels,"--", image_height, "xx", image_width )
-
-        # Iterate over the splits
-        for i in range(num_splits):
-            # Calculate the starting and ending positions for each split
-            start_y = i * (size - overlap_pixels)
-            end_y = min(start_y + size, image_height)
-
-            last_y = start_y + size
-            if last_y > image_height:
-                end_y = image_height
-                #start_y = image_height - size
-                #start_y = start_y #+ size - image_height
-
-            # Extract the split as a small image
-            small_image = img_res[start_y:end_y, :]
-
-
-            if last_y > image_height:
-                small_image = pad_image_to_height(small_image, size)
-
-            # Resize the small image
-            #small_image = cv2.resize(small_image, (size, size))
-
-            # Save the 
-            i = i+1;
-            save_image_path = os.path.join(save_folder, f"{image_name[:-4]}_{i}.png")
-            cv2.imwrite(save_image_path, small_image)
-
-
-
-        # Save resized image
-        #save_path = os.path.join(save_folder, image_name)
-        #cv2.imwrite(save_path, resized_image)
-
-
+def process_images(input_folder, save_folder, size):
+    # Iterate over the images in the input folder
+    for filename in os.listdir(input_folder):
+        if filename.endswith('.jpg') or filename.endswith('.png'):
+            image_path = os.path.join(input_folder, filename)
+            mask_path = os.path.join(input_folder, f"{os.path.splitext(filename)[0]}.png")
+            if not os.path.exists(mask_path):
+                print(f"Mask not found for {filename}. Skipping...")
+                continue
+            crop_slide_window(image_path, mask_path, save_folder, size)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Resize images while keeping aspect ratio')
+    parser = argparse.ArgumentParser(description='Crop slide windows around mask centers and resize them.')
     parser.add_argument('--input_folder', required=True, help='Input folder containing images')
-    parser.add_argument('--save_folder', required=True, help='Folder to save resized images')
-    parser.add_argument('--overlap', type=float, default=0.3, help='Overlap ratio (default: 0.3)')
-    parser.add_argument('--size', type=int, default=640, help='Size of each window (default: 640)')
-
+    parser.add_argument('--save_folder', required=True, help='Folder to save cropped and resized slide windows')
+    parser.add_argument('--size', type=int, default=448, help='Height of the resized slide windows (default: 448)')
     args = parser.parse_args()
 
-    slideprocess(args.input_folder, args.save_folder, args.size, args.overlap)
+    process_images(args.input_folder, args.save_folder, args.size)
+
