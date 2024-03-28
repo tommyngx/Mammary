@@ -7,7 +7,7 @@ from tqdm import tqdm
 def find_center(original_mask):
     # Read the mask image
     #mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    mask =original_mask
+    mask  = cv2.cvtColor(original_mask, cv2.COLOR_BGR2GRAY)
     if mask is None:
         print("Failed to read the mask image.")
         return None
