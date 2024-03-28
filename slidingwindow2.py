@@ -75,7 +75,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
     # Determine the slide location
     center_x, center_y = center
     slide_height = size
-    center_y = slide_location(image_path, center_y, slide_height)
+    center_y = slide_location(original_mask, center_y, slide_height)
 
     # Crop the slide window around the center
     original_image = cv2.imread(image_path)
