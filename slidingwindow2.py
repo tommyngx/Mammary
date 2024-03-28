@@ -87,7 +87,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
 
     # Save the resized slide window
     base_name = os.path.splitext(os.path.basename(image_path))[0]
-    print(" image ", base_name)
+    #print(" image ", base_name)
     save_path = os.path.join(save_folder, f"images/{base_name}.png")
     cv2.imwrite(save_path, slide_window)
 
