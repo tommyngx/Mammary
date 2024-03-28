@@ -36,7 +36,7 @@ def slide_location(image, center_y, slide_height):
     original_image = image
 
     # Calculate the top and bottom limits for cropping
-    max_top = min(center_y - slide_height // 2, 0)
+    max_top = max(center_y - slide_height // 2, 0)
     max_bottom = min(center_y + slide_height // 2, original_image.shape[0])
 
     # Adjust center_y if it's too close to the top or bottom
