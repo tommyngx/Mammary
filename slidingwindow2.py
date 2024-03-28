@@ -137,7 +137,7 @@ def crop_slide_window(image_path, mask_path, save_folder, size):
         cv2.imwrite(upper_save_image_path, upper_slide_window)
         cv2.imwrite(upper_save_mask_path, upper_mask_window)
 
-    if lower_slide_window.shape[0] < size +1 :
+    if lower_slide_window.shape[0] < size + 1 and lower_slide_window.shape[0] >0  :
         lower_save_image_path = os.path.join(save_folder, f"images/{base_name}_lower.png")
         lower_save_mask_path = os.path.join(save_folder, f"masks/{base_name}_lower.png")
         cv2.imwrite(lower_save_image_path, lower_slide_window)
