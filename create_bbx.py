@@ -64,6 +64,10 @@ def process_masks(mask_folder, output_folder):
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             bboxes = [cv2.boundingRect(c) for c in contours]
 
+            # Filter out small bounding boxes
+            min_size = 0.001  # 0.1% of the image size
+            bboxes = [bbox for bbox in bboxes if bbox[2] >= width * min_size and bbox[3] >= height * min_size]
+
             # Add data to the list
             for bbox in bboxes:
                 x, y, w, h = bbox
