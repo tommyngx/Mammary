@@ -23,7 +23,7 @@ def create_voc_annotation(img_name, height, width, bboxes):
     for bbox in bboxes:
         obj = SubElement(annotation, 'object')
         name = SubElement(obj, 'name')
-        name.text = 'object'
+        name.text = 'cancer'
         bndbox = SubElement(obj, 'bndbox')
         xmin = SubElement(bndbox, 'xmin')
         xmin.text = str(bbox[0])
