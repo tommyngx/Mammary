@@ -87,6 +87,15 @@ def process_masks(mask_folder, output_folder):
             with open(yolo_path, 'w') as f:
                 f.write(yolo_annotation)
 
+            # Draw bounding boxes on the original mask image
+            annotated_image = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+            for bbox in bboxes:
+                x, y, w, h = bbox
+                cv2.rectangle(annotated_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            annotated_image_path = os.path.join(output_folder, 'AnnotatedMasks', mask_filename)
+            os.makedirs(os.path.dirname(annotated_image_path), exist_ok=True)
+            cv2.imwrite(annotated_image_path, annotated_image)
+
     # Convert bbox data to a DataFrame and save to CSV
     bbox_df = pd.DataFrame(bbox_data, columns=['name', 'height', 'width', 'x', 'y', 'bbox_width', 'bbox_height'])
     csv_path = os.path.join(output_folder, 'bounding_boxes.csv')
