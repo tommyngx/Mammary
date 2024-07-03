@@ -71,13 +71,13 @@ def process_masks(mask_folder, output_folder):
             # Adjust invalid bounding boxes
             valid_bboxes = []
             for bbox in bboxes:
-                x, y, w, h = bbox
+                x, y, w, h = map(float, bbox)  # Convert tensor values to float
                 x_min, y_min, x_max, y_max = x, y, x + w, y + h
                 # Ensure x_max > x_min and y_max > y_min
                 if x_max <= x_min:
-                    x_max = x_min + 1
+                    x_max = x_min + 5
                 if y_max <= y_min:
-                    y_max = y_min + 1
+                    y_max = y_min + 5
                 valid_bboxes.append((x_min, y_min, x_max, y_max))
                 bbox_data.append([mask_filename, height, width, x_min, y_min, x_max - x_min, y_max - y_min])
 
@@ -99,7 +99,7 @@ def process_masks(mask_folder, output_folder):
             annotated_image = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
             for bbox in valid_bboxes:
                 x_min, y_min, x_max, y_max = bbox
-                cv2.rectangle(annotated_image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+                cv2.rectangle(annotated_image, (int(x_min), int(y_min)), (int(x_max), int(y_max)), (0, 255, 0), 2)
             annotated_image_path = os.path.join(output_folder, 'AnnotatedMasks', mask_filename)
             os.makedirs(os.path.dirname(annotated_image_path), exist_ok=True)
             cv2.imwrite(annotated_image_path, annotated_image)
