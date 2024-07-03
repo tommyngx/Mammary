@@ -57,6 +57,9 @@ def process_masks(mask_folder, output_folder):
             mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
             height, width = mask.shape
 
+            # Process the mask: set pixels < 100 to 0, >= 100 to 255
+            _, mask = cv2.threshold(mask, 100, 255, cv2.THRESH_BINARY)
+
             # Find contours and bounding boxes
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             bboxes = [cv2.boundingRect(c) for c in contours]
