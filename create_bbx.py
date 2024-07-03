@@ -68,20 +68,28 @@ def process_masks(mask_folder, output_folder):
             min_size = 0.001  # 0.1% of the image size
             bboxes = [bbox for bbox in bboxes if bbox[2] >= width * min_size and bbox[3] >= height * min_size]
 
-            # Add data to the list
+            # Adjust invalid bounding boxes
+            valid_bboxes = []
             for bbox in bboxes:
                 x, y, w, h = bbox
-                bbox_data.append([mask_filename, height, width, x, y, w, h])
+                x_min, y_min, x_max, y_max = x, y, x + w, y + h
+                # Ensure x_max > x_min and y_max > y_min
+                if x_max <= x_min:
+                    x_max = x_min + 1
+                if y_max <= y_min:
+                    y_max = y_min + 1
+                valid_bboxes.append((x_min, y_min, x_max, y_max))
+                bbox_data.append([mask_filename, height, width, x_min, y_min, x_max - x_min, y_max - y_min])
 
             # Save VOC annotation
-            voc_annotation = create_voc_annotation(mask_filename, height, width, bboxes)
+            voc_annotation = create_voc_annotation(mask_filename, height, width, valid_bboxes)
             voc_path = os.path.join(output_folder, 'VOC', f"{os.path.splitext(mask_filename)[0]}.xml")
             os.makedirs(os.path.dirname(voc_path), exist_ok=True)
             with open(voc_path, 'wb') as f:
                 ElementTree(voc_annotation).write(f)
 
             # Save YOLO annotation
-            yolo_annotation = create_yolo_annotation(height, width, bboxes)
+            yolo_annotation = create_yolo_annotation(height, width, valid_bboxes)
             yolo_path = os.path.join(output_folder, 'YOLO', f"{os.path.splitext(mask_filename)[0]}.txt")
             os.makedirs(os.path.dirname(yolo_path), exist_ok=True)
             with open(yolo_path, 'w') as f:
@@ -89,9 +97,9 @@ def process_masks(mask_folder, output_folder):
 
             # Draw bounding boxes on the original mask image
             annotated_image = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-            for bbox in bboxes:
-                x, y, w, h = bbox
-                cv2.rectangle(annotated_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            for bbox in valid_bboxes:
+                x_min, y_min, x_max, y_max = bbox
+                cv2.rectangle(annotated_image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
             annotated_image_path = os.path.join(output_folder, 'AnnotatedMasks', mask_filename)
             os.makedirs(os.path.dirname(annotated_image_path), exist_ok=True)
             cv2.imwrite(annotated_image_path, annotated_image)
