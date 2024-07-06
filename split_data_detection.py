@@ -2,6 +2,7 @@ import os
 import shutil
 import random
 import argparse
+import pandas as pd
 from tqdm import tqdm
 import cv2
 import xml.etree.ElementTree as ET
@@ -92,7 +93,7 @@ def draw_bboxes_on_image(image, bboxes):
         cv2.rectangle(annotated_image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
     return annotated_image
 
-def copy_and_resize(files, image_dir, label_dir, annotated_dir, image_folder, label_folder):
+def copy_and_resize(files, image_dir, label_dir, annotated_dir, csv_data, image_folder, label_folder):
     for image_file, label_file in files:
         image_path = os.path.join(image_folder, image_file)
         label_path = os.path.join(label_folder, label_file)
@@ -132,6 +133,11 @@ def copy_and_resize(files, image_dir, label_dir, annotated_dir, image_folder, la
         annotated_image_path = os.path.join(annotated_dir, image_file)
         cv2.imwrite(annotated_image_path, annotated_image)
 
+        # Collect data for CSV
+        for bbox in resized_bboxes:
+            x_min, y_min, x_max, y_max = bbox
+            csv_data.append([image_file, resized_image.shape[0], resized_image.shape[1], x_min, y_min, x_max - x_min, y_max - y_min])
+
 def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Ensure the output directories exist
     train_image_dir = os.path.join(output_folder, 'train', 'images')
@@ -163,24 +169,26 @@ def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     train_files = paired_files[:split_index]
     test_files = paired_files[split_index:]
 
+    # Create a list to store CSV data
+    csv_data = []
+
     # Create a progress bar for the whole process
     with tqdm(total=len(train_files) + len(test_files), desc="Processing dataset") as pbar:
         # Process and copy training files
-        copy_and_resize(train_files, train_image_dir, train_label_dir, annotated_dir, image_folder, label_folder)
+        copy_and_resize(train_files, train_image_dir, train_label_dir, annotated_dir, csv_data, image_folder, label_folder)
         pbar.update(len(train_files))
 
         # Process and copy test files
-        copy_and_resize(test_files, test_image_dir, test_label_dir, annotated_dir, image_folder, label_folder)
+        copy_and_resize(test_files, test_image_dir, test_label_dir, annotated_dir, csv_data, image_folder, label_folder)
         pbar.update(len(test_files))
 
-    print(f"Dataset split completed. Training set: {len(train_files)} samples, Test set: {len(test_files)} samples.")
+    # Save CSV file
+    csv_df = pd.DataFrame(csv_data, columns=['image', 'height', 'width', 'x', 'y', 'bbox_width', 'bbox_height'])
+    csv_path = os.path.join(output_folder, 'annotations.csv')
+    csv_df.to_csv(csv_path, index=False)
+
+    print(f"Dataset split completed. Training set: {len(train_files)} samples, Test set: {len(test_files)} samples. Annotations saved to {csv_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Split dataset into training and test sets")
     parser.add_argument('--image_folder', type=str, required=True, help="Path to the folder containing image files")
-    parser.add_argument('--label_folder', type=str, required=True, help="Path to the folder containing label files")
-    parser.add_argument('--output_folder', type=str, required=True, help="Path to the folder to save the split dataset")
-    parser.add_argument('--train_ratio', type=float, default=0.8, help="Ratio of the training set size to the total dataset size")
-    args = parser.parse_args()
-
-    split_dataset(args.image_folder, args.label_folder, args.output_folder, args.train_ratio)
