@@ -1,5 +1,4 @@
 import os
-import shutil
 import random
 import argparse
 from tqdm import tqdm
