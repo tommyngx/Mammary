@@ -86,7 +86,7 @@ def save_voc_label_file(label_path, image_file, bboxes, image_shape):
     tree.write(label_path)
 
 def copy_and_resize(files, image_dir, label_dir, image_folder, label_folder):
-    for image_file, label_file in tqdm(files, desc=f"Copying files to {image_dir}"):
+    for image_file, label_file in files:
         image_path = os.path.join(image_folder, image_file)
         label_path = os.path.join(label_folder, label_file)
 
@@ -144,16 +144,20 @@ def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Shuffle the data
     random.shuffle(paired_files)
 
-    # Split data into training and validation sets
+    # Split data into training and test sets
     split_index = int(len(paired_files) * train_ratio)
     train_files = paired_files[:split_index]
     test_files = paired_files[split_index:]
 
-    # Process and copy training files
-    copy_and_resize(train_files, train_image_dir, train_label_dir, image_folder, label_folder)
+    # Create a progress bar for the whole process
+    with tqdm(total=len(train_files) + len(test_files), desc="Processing dataset") as pbar:
+        # Process and copy training files
+        copy_and_resize(train_files, train_image_dir, train_label_dir, image_folder, label_folder)
+        pbar.update(len(train_files))
 
-    # Process and copy validation files
-    copy_and_resize(test_files, test_image_dir, test_label_dir, image_folder, label_folder)
+        # Process and copy test files
+        copy_and_resize(test_files, test_image_dir, test_label_dir, image_folder, label_folder)
+        pbar.update(len(test_files))
 
     print(f"Dataset split completed. Training set: {len(train_files)} samples, Test set: {len(test_files)} samples.")
 
