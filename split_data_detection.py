@@ -1,4 +1,5 @@
 import os
+import shutil
 import random
 import argparse
 from tqdm import tqdm
@@ -85,7 +86,7 @@ def save_voc_label_file(label_path, image_file, bboxes, image_shape):
     tree.write(label_path)
 
 def copy_and_resize(files, image_dir, label_dir, image_folder, label_folder):
-    for image_file, label_file in tqdm(files, desc=f"Copying and resizing files to {image_dir}", unit="file"):
+    for image_file, label_file in tqdm(files, desc=f"Copying files to {image_dir}", unit="file"):
         image_path = os.path.join(image_folder, image_file)
         label_path = os.path.join(label_folder, label_file)
 
@@ -123,13 +124,13 @@ def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Ensure the output directories exist
     train_image_dir = os.path.join(output_folder, 'train', 'images')
     train_label_dir = os.path.join(output_folder, 'train', 'labels')
-    valid_image_dir = os.path.join(output_folder, 'test', 'images')
-    valid_label_dir = os.path.join(output_folder, 'test', 'labels')
+    test_image_dir = os.path.join(output_folder, 'test', 'images')
+    test_label_dir = os.path.join(output_folder, 'test', 'labels')
 
     os.makedirs(train_image_dir, exist_ok=True)
     os.makedirs(train_label_dir, exist_ok=True)
-    os.makedirs(valid_image_dir, exist_ok=True)
-    os.makedirs(valid_label_dir, exist_ok=True)
+    os.makedirs(test_image_dir, exist_ok=True)
+    os.makedirs(test_label_dir, exist_ok=True)
 
     # List all images and labels
     images = [f for f in os.listdir(image_folder) if f.endswith('.png') or f.endswith('.jpg')]
@@ -146,18 +147,18 @@ def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Split data into training and validation sets
     split_index = int(len(paired_files) * train_ratio)
     train_files = paired_files[:split_index]
-    valid_files = paired_files[split_index:]
+    test_files = paired_files[split_index:]
 
     # Process and copy training files
     copy_and_resize(train_files, train_image_dir, train_label_dir, image_folder, label_folder)
 
     # Process and copy validation files
-    copy_and_resize(valid_files, valid_image_dir, valid_label_dir, image_folder, label_folder)
+    copy_and_resize(test_files, test_image_dir, test_label_dir, image_folder, label_folder)
 
-    print(f"Dataset split completed. Training set: {len(train_files)} samples, Validation set: {len(valid_files)} samples.")
+    print(f"Dataset split completed. Training set: {len(train_files)} samples, Test set: {len(test_files)} samples.")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Split dataset into training and validation sets")
+    parser = argparse.ArgumentParser(description="Split dataset into training and test sets")
     parser.add_argument('--image_folder', type=str, required=True, help="Path to the folder containing image files")
     parser.add_argument('--label_folder', type=str, required=True, help="Path to the folder containing label files")
     parser.add_argument('--output_folder', type=str, required=True, help="Path to the folder to save the split dataset")
