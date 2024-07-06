@@ -6,7 +6,6 @@ from tqdm import tqdm
 import cv2
 import xml.etree.ElementTree as ET
 
-
 def resize_and_adjust_bboxes(image, bboxes, target_size=(640, 640)):
     height, width = image.shape[:2]
     target_width, target_height = target_size
@@ -87,7 +86,7 @@ def save_voc_label_file(label_path, image_file, bboxes, image_shape):
     tree.write(label_path)
 
 def copy_and_resize(files, image_dir, label_dir, image_folder, label_folder):
-    for image_file, label_file in tqdm(files, desc=f"Copying and resizing files to {image_dir}"):
+    for image_file, label_file in tqdm(files, desc=f"Copying and resizing files to {image_dir}", unit="file"):
         image_path = os.path.join(image_folder, image_file)
         label_path = os.path.join(label_folder, label_file)
 
@@ -125,8 +124,8 @@ def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Ensure the output directories exist
     train_image_dir = os.path.join(output_folder, 'train', 'images')
     train_label_dir = os.path.join(output_folder, 'train', 'labels')
-    valid_image_dir = os.path.join(output_folder, 'valid', 'images')
-    valid_label_dir = os.path.join(output_folder, 'valid', 'labels')
+    valid_image_dir = os.path.join(output_folder, 'test', 'images')
+    valid_label_dir = os.path.join(output_folder, 'test', 'labels')
 
     os.makedirs(train_image_dir, exist_ok=True)
     os.makedirs(train_label_dir, exist_ok=True)
