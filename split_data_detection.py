@@ -85,7 +85,14 @@ def save_voc_label_file(label_path, image_file, bboxes, image_shape):
     tree = ET.ElementTree(annotation)
     tree.write(label_path)
 
-def copy_and_resize(files, image_dir, label_dir, image_folder, label_folder):
+def draw_bboxes_on_image(image, bboxes):
+    annotated_image = image.copy()
+    for bbox in bboxes:
+        x_min, y_min, x_max, y_max = bbox
+        cv2.rectangle(annotated_image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+    return annotated_image
+
+def copy_and_resize(files, image_dir, label_dir, annotated_dir, image_folder, label_folder):
     for image_file, label_file in files:
         image_path = os.path.join(image_folder, image_file)
         label_path = os.path.join(label_folder, label_file)
@@ -120,17 +127,24 @@ def copy_and_resize(files, image_dir, label_dir, image_folder, label_folder):
         elif label_file.endswith('.xml'):
             save_voc_label_file(resized_label_path, image_file, resized_bboxes, resized_image.shape)
 
+        # Draw bounding boxes on image and save annotated image
+        annotated_image = draw_bboxes_on_image(resized_image, resized_bboxes)
+        annotated_image_path = os.path.join(annotated_dir, image_file)
+        cv2.imwrite(annotated_image_path, annotated_image)
+
 def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Ensure the output directories exist
     train_image_dir = os.path.join(output_folder, 'train', 'images')
     train_label_dir = os.path.join(output_folder, 'train', 'labels')
     test_image_dir = os.path.join(output_folder, 'test', 'images')
     test_label_dir = os.path.join(output_folder, 'test', 'labels')
+    annotated_dir = os.path.join(output_folder, 'annotated_bbx')
 
     os.makedirs(train_image_dir, exist_ok=True)
     os.makedirs(train_label_dir, exist_ok=True)
     os.makedirs(test_image_dir, exist_ok=True)
     os.makedirs(test_label_dir, exist_ok=True)
+    os.makedirs(annotated_dir, exist_ok=True)
 
     # List all images and labels
     images = [f for f in os.listdir(image_folder) if f.endswith('.png') or f.endswith('.jpg')]
@@ -152,11 +166,11 @@ def split_dataset(image_folder, label_folder, output_folder, train_ratio=0.8):
     # Create a progress bar for the whole process
     with tqdm(total=len(train_files) + len(test_files), desc="Processing dataset") as pbar:
         # Process and copy training files
-        copy_and_resize(train_files, train_image_dir, train_label_dir, image_folder, label_folder)
+        copy_and_resize(train_files, train_image_dir, train_label_dir, annotated_dir, image_folder, label_folder)
         pbar.update(len(train_files))
 
         # Process and copy test files
-        copy_and_resize(test_files, test_image_dir, test_label_dir, image_folder, label_folder)
+        copy_and_resize(test_files, test_image_dir, test_label_dir, annotated_dir, image_folder, label_folder)
         pbar.update(len(test_files))
 
     print(f"Dataset split completed. Training set: {len(train_files)} samples, Test set: {len(test_files)} samples.")
