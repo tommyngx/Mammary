@@ -86,7 +86,7 @@ def save_voc_label_file(label_path, image_file, bboxes, image_shape):
     tree.write(label_path)
 
 def copy_and_resize(files, image_dir, label_dir, image_folder, label_folder):
-    for image_file, label_file in tqdm(files, desc=f"Copying files to {image_dir}", unit="file"):
+    for image_file, label_file in tqdm(files, desc=f"Copying files to {image_dir}"):
         image_path = os.path.join(image_folder, image_file)
         label_path = os.path.join(label_folder, label_file)
 
