@@ -107,6 +107,10 @@ def copy_and_resize(files, image_dir, label_dir, annotated_dir, image_folder, la
         else:
             continue
 
+        # Skip images with no bounding boxes
+        if not bboxes:
+            continue
+
         # Resize image and adjust bounding boxes
         resized_image, resized_bboxes = resize_and_adjust_bboxes(image, bboxes)
 
