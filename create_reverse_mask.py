@@ -48,37 +48,42 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir):
 
     for pred_mask_file in tqdm(pred_masks, desc="Processing predicted masks"):
         print(f"Processing {pred_mask_file}")
-        base_filename = os.path.splitext(pred_mask_file)[0].rsplit('_', 1)[0]
+        base_filename = os.path.splitext(pred_mask_file)[0].rsplit('_', 2)[0]  # Adjusted to ignore '_crop_{i}'
         pred_mask_path = os.path.join(pred_mask_folder, pred_mask_file)
-        mask_path = os.path.join(mask_folder, f"{base_filename}.png")
+        
+        # Find all mask files starting with base_filename
+        original_mask_files = [f for f in os.listdir(mask_folder) if f.startswith(base_filename) and f.endswith('.png')]
 
-        if not os.path.exists(mask_path):
-            print(f"Original mask {base_filename}.png not found.")
-            continue
+        for mask_file in original_mask_files:
+            mask_path = os.path.join(mask_folder, mask_file)
 
-        # Read original mask and predicted mask
-        original_mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-        pred_mask = cv2.imread(pred_mask_path, cv2.IMREAD_GRAYSCALE)
+            if not os.path.exists(mask_path):
+                print(f"Original mask {mask_file} not found.")
+                continue
 
-        if original_mask is None:
-            print(f"Failed to read original mask {mask_path}")
-            continue
-        if pred_mask is None:
-            print(f"Failed to read predicted mask {pred_mask_path}")
-            continue
+            # Read original mask and predicted mask
+            original_mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+            pred_mask = cv2.imread(pred_mask_path, cv2.IMREAD_GRAYSCALE)
 
-        # Find bounding boxes from the original mask
-        bboxes = find_bboxes_from_mask(original_mask)
+            if original_mask is None:
+                print(f"Failed to read original mask {mask_path}")
+                continue
+            if pred_mask is None:
+                print(f"Failed to read predicted mask {pred_mask_path}")
+                continue
 
-        # Adjust bounding boxes
-        adjusted_bboxes = adjust_bboxes(bboxes, original_mask.shape)
+            # Find bounding boxes from the original mask
+            bboxes = find_bboxes_from_mask(original_mask)
 
-        # Resize and paste predicted masks back to the original mask
-        for i, bbox in enumerate(adjusted_bboxes):
-            new_mask = resize_and_paste_pred_mask(original_mask, pred_mask, bbox)
-            predict_ori_mask_path = os.path.join(predict_ori_mask_dir, f"{base_filename}_predictOriMask_{i}.png")
-            cv2.imwrite(predict_ori_mask_path, new_mask)
-            print(f"Saved {predict_ori_mask_path}")
+            # Adjust bounding boxes
+            adjusted_bboxes = adjust_bboxes(bboxes, original_mask.shape)
+
+            # Resize and paste predicted masks back to the original mask
+            for i, bbox in enumerate(adjusted_bboxes):
+                new_mask = resize_and_paste_pred_mask(original_mask, pred_mask, bbox)
+                predict_ori_mask_path = os.path.join(predict_ori_mask_dir, f"{base_filename}_predictOriMask_{i}.png")
+                cv2.imwrite(predict_ori_mask_path, new_mask)
+                print(f"Saved {predict_ori_mask_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Resize and paste predicted masks back to the original masks")
