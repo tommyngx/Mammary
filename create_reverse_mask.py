@@ -26,7 +26,7 @@ def find_bboxes_from_mask(mask):
     bboxes = [cv2.boundingRect(contour) for contour in contours]
     return [(x, y, x + w, y + h) for x, y, w, h in bboxes]
 
-def resize_and_paste_mask(original_mask, pred_mask, bbox):
+def resize_and_paste_pred_mask(original_mask, pred_mask, bbox):
     x_min, y_min, x_max, y_max = bbox
     bbox_width = x_max - x_min
     bbox_height = y_max - y_min
@@ -42,7 +42,7 @@ def resize_and_paste_mask(original_mask, pred_mask, bbox):
 
     return new_mask
 
-def crop_and_save(image, mask, pred_mask_folder, bboxes, output_image_dir, output_mask_dir, base_filename, resize_to=None):
+def crop_and_save(image, mask, pred_mask_folder, bboxes, output_image_dir, output_mask_dir, predict_ori_mask_dir, base_filename, resize_to=None):
     for i, bbox in enumerate(bboxes):
         x_min, y_min, x_max, y_max = bbox
         cropped_image = image[y_min:y_max, x_min:x_max]
@@ -55,7 +55,9 @@ def crop_and_save(image, mask, pred_mask_folder, bboxes, output_image_dir, outpu
         pred_mask_path = os.path.join(pred_mask_folder, f"{base_filename}.png")
         if os.path.exists(pred_mask_path):
             pred_mask = cv2.imread(pred_mask_path, cv2.IMREAD_GRAYSCALE)
-            cropped_mask = resize_and_paste_mask(cropped_mask, pred_mask, (0, 0, cropped_mask.shape[1], cropped_mask.shape[0]))
+            new_mask = resize_and_paste_pred_mask(mask, pred_mask, bbox)
+            predict_ori_mask_path = os.path.join(predict_ori_mask_dir, f"{base_filename}_predictOriMask_{i}.png")
+            cv2.imwrite(predict_ori_mask_path, new_mask)
 
         image_filename = os.path.join(output_image_dir, f"{base_filename}_crop_{i}.png")
         mask_filename = os.path.join(output_mask_dir, f"{base_filename}_crop_{i}.png")
@@ -65,9 +67,11 @@ def crop_and_save(image, mask, pred_mask_folder, bboxes, output_image_dir, outpu
 def process_images_and_masks(image_folder, mask_folder, pred_mask_folder, output_folder, resize_to):
     output_image_dir = os.path.join(output_folder, 'images')
     output_mask_dir = os.path.join(output_folder, 'masks')
+    predict_ori_mask_dir = os.path.join(output_folder, 'predictOriMask')
 
     os.makedirs(output_image_dir, exist_ok=True)
     os.makedirs(output_mask_dir, exist_ok=True)
+    os.makedirs(predict_ori_mask_dir, exist_ok=True)
 
     images = [f for f in os.listdir(image_folder) if f.endswith('.png') or f.endswith('.jpg')]
     masks = [f for f in os.listdir(mask_folder) if f.endswith('.png') or f.endswith('.jpg')]
@@ -91,7 +95,7 @@ def process_images_and_masks(image_folder, mask_folder, pred_mask_folder, output
 
         # Crop and save images and masks
         base_filename = os.path.splitext(image_file)[0]
-        crop_and_save(image, mask, pred_mask_folder, adjusted_bboxes, output_image_dir, output_mask_dir, base_filename, resize_to)
+        crop_and_save(image, mask, pred_mask_folder, adjusted_bboxes, output_image_dir, output_mask_dir, predict_ori_mask_dir, base_filename, resize_to)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Crop regions from images and masks based on bounding boxes")
