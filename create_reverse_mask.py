@@ -58,7 +58,7 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir):
             mask_path = os.path.join(mask_folder, mask_file)
 
             if not os.path.exists(mask_path):
-                print(f"Original mask {mask_file} not found.")
+                #print(f"Original mask {mask_file} not found.")
                 continue
 
             # Read original mask and predicted mask
@@ -66,10 +66,10 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir):
             pred_mask = cv2.imread(pred_mask_path, cv2.IMREAD_GRAYSCALE)
 
             if original_mask is None:
-                print(f"Failed to read original mask {mask_path}")
+                #print(f"Failed to read original mask {mask_path}")
                 continue
             if pred_mask is None:
-                print(f"Failed to read predicted mask {pred_mask_path}")
+                #print(f"Failed to read predicted mask {pred_mask_path}")
                 continue
 
             # Find bounding boxes from the original mask
