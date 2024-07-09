@@ -47,7 +47,7 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir):
     pred_masks = [f for f in os.listdir(pred_mask_folder) if f.endswith('.png') or f.endswith('.jpg')]
 
     for pred_mask_file in tqdm(pred_masks, desc="Processing predicted masks"):
-        print(f"Processing {pred_mask_file}")
+        #print(f"Processing {pred_mask_file}")
         base_filename = os.path.splitext(pred_mask_file)[0].rsplit('_', 2)[0]  # Adjusted to ignore '_crop_{i}'
         pred_mask_path = os.path.join(pred_mask_folder, pred_mask_file)
         
@@ -83,7 +83,7 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir):
                 new_mask = resize_and_paste_pred_mask(original_mask, pred_mask, bbox)
                 predict_ori_mask_path = os.path.join(predict_ori_mask_dir, f"{base_filename}_predictOriMask_{i}.png")
                 cv2.imwrite(predict_ori_mask_path, new_mask)
-                print(f"Saved {predict_ori_mask_path}")
+                #print(f"Saved {predict_ori_mask_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Resize and paste predicted masks back to the original masks")
