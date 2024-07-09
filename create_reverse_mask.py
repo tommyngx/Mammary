@@ -90,7 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_folder', type=str, required=True, help="Path to the folder to save the new masks with predicted masks pasted")
     args = parser.parse_args()
 
-    predict_ori_mask_dir = os.path.join(args.output_folder, 'predictOriMask')
-    ori_mask_dir = os.path.join(args.output_folder, 'oriMask')
+    predict_ori_mask_dir = os.path.join(args.output_folder, 'FullMasks')
+    ori_mask_dir = os.path.join(args.output_folder, 'OrigMasks')
 
     process_pred_masks(args.pred_mask_folder, args.mask_folder, predict_ori_mask_dir, ori_mask_dir)
