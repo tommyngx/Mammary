@@ -49,6 +49,7 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir, ori_
 
     for pred_mask_file in tqdm(pred_masks, desc="Processing predicted masks"):
         base_filename = pred_mask_file.replace('_pred_prediction.png', '')
+        base_filename = os.path.splitext(base_filename)[0].rsplit('_', 2)[0]  # Adjusted to ignore '_crop_{i}'
         pred_mask_path = os.path.join(pred_mask_folder, pred_mask_file)
         
         # Find all mask files starting with base_filename
