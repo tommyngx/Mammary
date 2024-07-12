@@ -3,6 +3,7 @@ import json
 import cv2
 import argparse
 from tqdm import tqdm
+import numpy as np
 
 def process_images(json_file, image_folder, output_folder):
     # Create output folder if it does not exist
