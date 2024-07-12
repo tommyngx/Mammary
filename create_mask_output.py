@@ -23,7 +23,7 @@ def process_images_and_masks(image_folder, mask_folder, output_folder):
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         
         # Define the range for the specific purple color in RGB
-        lower_purple = np.array([0, 0, 128])
+        lower_purple = np.array([0, 0, 159])
         upper_purple = np.array([50, 50, 255])
         
         # Create a mask for the specific purple color
@@ -32,8 +32,21 @@ def process_images_and_masks(image_folder, mask_folder, output_folder):
         # Find contours of the bounding box
         contours, _ = cv2.findContours(mask_purple, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
+        # Find the corresponding mask file (same name but different extension)
+        base_name = os.path.splitext(image_file)[0]
+        mask_file = None
+        for ext in ['.png', '.jpg', '.jpeg']:
+            potential_mask_file = base_name + ext
+            if os.path.exists(os.path.join(mask_folder, potential_mask_file)):
+                mask_file = potential_mask_file
+                break
+
+        if mask_file is None:
+            print(f"Warning: Could not find corresponding mask for {image_file}")
+            continue
+        
         # Read the corresponding mask image
-        mask_path = os.path.join(mask_folder, image_file)
+        mask_path = os.path.join(mask_folder, mask_file)
         mask_image = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         if mask_image is None:
             print(f"Warning: Could not read mask {mask_path}")
@@ -50,7 +63,7 @@ def process_images_and_masks(image_folder, mask_folder, output_folder):
             new_mask[y:y+h, x:x+w] = mask_image[y:y+h, x:x+w]
         
         # Save the new mask to the output folder
-        output_mask_path = os.path.join(output_folder, image_file)
+        output_mask_path = os.path.join(output_folder, base_name + '.png')
         cv2.imwrite(output_mask_path, new_mask)
 
 if __name__ == '__main__':
