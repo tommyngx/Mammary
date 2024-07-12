@@ -2,8 +2,8 @@ import os
 import json
 import cv2
 import argparse
-from tqdm import tqdm
 import numpy as np
+from tqdm import tqdm
 
 def process_images(json_file, image_folder, output_folder):
     # Create output folder if it does not exist
@@ -13,8 +13,8 @@ def process_images(json_file, image_folder, output_folder):
     with open(json_file, 'r') as f:
         data = json.load(f)
     
-    # Create a dictionary mapping image IDs to image file names
-    image_id_to_filename = {image['id']: image['file_name'] for image in data['images']}
+    # Create a dictionary mapping image IDs to image file names and dimensions
+    image_id_to_info = {image['id']: (image['file_name'], image['width'], image['height']) for image in data['images']}
     
     # Create a dictionary mapping image IDs to their bounding boxes
     image_id_to_bboxes = {}
@@ -26,7 +26,7 @@ def process_images(json_file, image_folder, output_folder):
         image_id_to_bboxes[image_id].append(bbox)
     
     # Process each image
-    for image_id, filename in tqdm(image_id_to_filename.items(), desc="Processing images"):
+    for image_id, (filename, orig_width, orig_height) in tqdm(image_id_to_info.items(), desc="Processing images"):
         # Read the image
         image_path = os.path.join(image_folder, filename)
         image = cv2.imread(image_path)
@@ -36,15 +36,20 @@ def process_images(json_file, image_folder, output_folder):
         
         # Create a mask with the same dimensions as the image
         mask = np.zeros_like(image)
-        image_height, image_width = image.shape[:2]
         
-        # Keep the area of the bounding boxes #x_min, y_min, width, height
+        # Keep the area of the bounding boxes, scaled back to the original dimensions
         for bbox in image_id_to_bboxes.get(image_id, []):
-            x, y, w, h = map(int, bbox) 
-            #mask[y:y+h, x:x+w] = image[y:y+h, x:x+w]
-
-            y_top_left = image_height - y - h  # Convert y to top-left corner
-            mask[y_top_left:y_top_left+h, x:x+w] = image[y_top_left:y_top_left+h, x:x+w]
+            # Original bounding box coordinates
+            x, y, w, h = bbox
+            
+            # Scale the bounding box coordinates from 640x640 to the original image dimensions
+            x = int(x * orig_width / 640)
+            y = int(y * orig_height / 640)
+            w = int(w * orig_width / 640)
+            h = int(h * orig_height / 640)
+            
+            # Apply the mask
+            mask[y:y+h, x:x+w] = image[y:y+h, x:x+w]
         
         # Save the processed image to the output folder
         output_path = os.path.join(output_folder, filename)
