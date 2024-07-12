@@ -23,7 +23,7 @@ def process_images_and_masks(image_folder, mask_folder, output_folder):
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         
         # Define the range for the specific purple color in RGB
-        lower_purple = np.array([0, 0, 159])
+        lower_purple = np.array([0, 0, 128])
         upper_purple = np.array([50, 50, 255])
         
         # Create a mask for the specific purple color
