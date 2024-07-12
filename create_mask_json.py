@@ -37,10 +37,13 @@ def process_images(json_file, image_folder, output_folder):
         # Create a mask with the same dimensions as the image
         mask = np.zeros_like(image)
         
-        # Keep the area of the bounding boxes
+        # Keep the area of the bounding boxes #x_min, y_min, width, height
         for bbox in image_id_to_bboxes.get(image_id, []):
-            x, y, w, h = map(int, bbox)
-            mask[y:y+h, x:x+w] = image[y:y+h, x:x+w]
+            x, y, w, h = map(int, bbox) 
+            #mask[y:y+h, x:x+w] = image[y:y+h, x:x+w]
+
+            y_top_left = image_height - y - h  # Convert y to top-left corner
+            mask[y_top_left:y_top_left+h, x:x+w] = image[y_top_left:y_top_left+h, x:x+w]
         
         # Save the processed image to the output folder
         output_path = os.path.join(output_folder, filename)
