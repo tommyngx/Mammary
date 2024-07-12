@@ -48,7 +48,7 @@ def process_images(json_file, image_folder, output_folder):
 
             # Scale the bounding box coordinates based on the concept provided
             p1 = (int(x / 640 * orig_width), int(y / 640 * orig_height))
-            p2 = (int((x + w) / 640 * orig_width), int((y + h) / 640 * orig_height))
+            p2 = (int((x + 2*w) / 640 * orig_width), int((y + h) / 640 * orig_height))
             
             # Apply the mask
             #mask[p1[1]:p2[1], p1[0]:p2[0]] = image[p1[1]:p2[1], p1[0]:p2[0]]
