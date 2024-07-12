@@ -42,7 +42,10 @@ def process_images(json_file, image_folder, output_folder):
         for bbox in image_id_to_bboxes.get(image_id, []):
             # Original bounding box coordinates
             x, y, w, h = bbox
-            
+            # xmin, ymin, xmax, ymax = box
+            # width = xmax - xmin
+            # height = ymax - ymin
+
             # Scale the bounding box coordinates based on the concept provided
             p1 = (int(x / 640 * orig_width), int(y / 640 * orig_height))
             p2 = (int((x + w) / 640 * orig_width), int((y + h) / 640 * orig_height))
