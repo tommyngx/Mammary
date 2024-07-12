@@ -49,7 +49,7 @@ def process_images(json_file, image_folder, output_folder):
             
             # Apply the mask
             #mask[p1[1]:p2[1], p1[0]:p2[0]] = image[p1[1]:p2[1], p1[0]:p2[0]]
-            cv2.rectangle(image, p1, p2, (0, 255, 0), 2)
+            cv2.rectangle(mask, p1, p2, (0, 255, 0), 2)
         
         # Save the processed image to the output folder
         output_path = os.path.join(output_folder, filename)
