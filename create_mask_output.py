@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 from tqdm import tqdm
 
-def process_images_and_masks(image_folder, mask_folder, output_folder):
+def process_images_and_masks(image_folder, mask_folder, output_folder, increase_size):
     # Create output folder if it does not exist
     os.makedirs(output_folder, exist_ok=True)
     
@@ -59,6 +59,14 @@ def process_images_and_masks(image_folder, mask_folder, output_folder):
             # Get the bounding box coordinates
             x, y, w, h = cv2.boundingRect(contour)
             
+            # Increase the size of the bounding box
+            x_incr = int(w * increase_size)
+            y_incr = int(h * increase_size)
+            x = max(0, x - x_incr)
+            y = max(0, y - y_incr)
+            w = min(mask_image.shape[1] - x, w + 2 * x_incr)
+            h = min(mask_image.shape[0] - y, h + 2 * y_incr)
+            
             # Apply the bounding box to the mask
             new_mask[y:y+h, x:x+w] = mask_image[y:y+h, x:x+w]
         
@@ -71,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_folder', type=str, required=True, help="Path to the folder containing images")
     parser.add_argument('--mask_folder', type=str, required=True, help="Path to the folder containing masks")
     parser.add_argument('--output_folder', type=str, required=True, help="Path to the folder to save new masks")
+    parser.add_argument('--increase_size', type=float, default=0.0, help="Increase size of bounding boxes detected (default is 0.0)")
     args = parser.parse_args()
     
-    process_images_and_masks(args.image_folder, args.mask_folder, args.output_folder)
+    process_images_and_masks(args.image_folder, args.mask_folder, args.output_folder, args.increase_size)
