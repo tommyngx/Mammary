@@ -42,15 +42,12 @@ def process_images(json_file, image_folder, output_folder):
             # Original bounding box coordinates
             x, y, w, h = bbox
             
-            # Scale the bounding box coordinates from 640x640 to the original image dimensions
-            x = int(x * orig_width / 640)
-            y = int(y * orig_height / 640)
-            w = int(w * orig_width / 640)
-            h = int(h * orig_height / 640)
-            #box[0], box[1], box[2] - box[0], box[3] - box[1]]
-            w = w-x; h= h-y;
+            # Scale the bounding box coordinates based on the concept provided
+            p1 = (int(x / 640 * orig_width), int(y / 640 * orig_height))
+            p2 = (int((x + w) / 640 * orig_width), int((y + h) / 640 * orig_height))
+            
             # Apply the mask
-            mask[y:y+h, x:x+w] = image[y:y+h, x:x+w]
+            mask[p1[1]:p2[1], p1[0]:p2[0]] = image[p1[1]:p2[1], p1[0]:p2[0]]
         
         # Save the processed image to the output folder
         output_path = os.path.join(output_folder, filename)
