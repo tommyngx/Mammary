@@ -49,7 +49,7 @@ def process_images(json_file, image_folder, output_folder):
             h = int(h * orig_height / 640)
             
             # Apply the mask
-            mask[y:y+h, x:x+w] = image[y:y+h, x:x+w]
+            mask[y:y+h, x-w:x+w] = image[y:y+h, x-w:x+w]
         
         # Save the processed image to the output folder
         output_path = os.path.join(output_folder, filename)
