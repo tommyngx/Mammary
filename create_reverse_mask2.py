@@ -41,9 +41,10 @@ def resize_and_paste_pred_mask(original_mask, pred_mask, bbox):
 
     return new_mask
 
-def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir, ori_mask_dir, increase_size):
+def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir, ori_mask_dir, image_mask_dir, image_folder, increase_size):
     os.makedirs(predict_ori_mask_dir, exist_ok=True)
     os.makedirs(ori_mask_dir, exist_ok=True)
+    os.makedirs(image_mask_dir, exist_ok=True)
 
     pred_masks = [f for f in os.listdir(pred_mask_folder) if f.lower().endswith('_pred_prediction.png')]
 
@@ -84,15 +85,24 @@ def process_pred_masks(pred_mask_folder, mask_folder, predict_ori_mask_dir, ori_
             ori_mask_path = os.path.join(ori_mask_dir, f"{base_filename}.png")
             cv2.imwrite(ori_mask_path, original_mask)
 
+            # Find corresponding image file and save it in the ImageMasks directory
+            image_file = f"{base_filename}.png"
+            image_path = os.path.join(image_folder, image_file)
+            if os.path.exists(image_path):
+                output_image_path = os.path.join(image_mask_dir, image_file)
+                cv2.imwrite(output_image_path, cv2.imread(image_path))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Resize and paste predicted masks back to the original masks")
     parser.add_argument('--pred_mask_folder', type=str, required=True, help="Path to the folder containing predicted masks")
     parser.add_argument('--mask_folder', type=str, required=True, help="Path to the folder containing original masks")
+    parser.add_argument('--image_folder', type=str, required=True, help="Path to the folder containing original images")
     parser.add_argument('--output_folder', type=str, required=True, help="Path to the folder to save the new masks with predicted masks pasted")
     parser.add_argument('--increase_size', type=float, default=0.3, help="Percentage to increase the size of the bounding boxes (default is 0.3)")
     args = parser.parse_args()
 
     predict_ori_mask_dir = os.path.join(args.output_folder, 'FullMasks')
     ori_mask_dir = os.path.join(args.output_folder, 'OrigMasks')
+    image_mask_dir = os.path.join(args.output_folder, 'ImageMasks')
 
-    process_pred_masks(args.pred_mask_folder, args.mask_folder, predict_ori_mask_dir, ori_mask_dir, args.increase_size)
+    process_pred_masks(args.pred_mask_folder, args.mask_folder, predict_ori_mask_dir, ori_mask_dir, image_mask_dir, args.image_folder, args.increase_size)
