@@ -35,7 +35,8 @@ def process_images(json_file, image_folder, output_folder):
             continue
         
         # Create a mask with the same dimensions as the image
-        mask = np.zeros_like(image)
+        #mask = np.zeros_like(image)
+        mask = image.copy()
         
         # Keep the area of the bounding boxes, scaled back to the original dimensions
         for bbox in image_id_to_bboxes.get(image_id, []):
